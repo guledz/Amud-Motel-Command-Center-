@@ -1,0 +1,2372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMUD MOTEL COMMAND CENTER — 30-Room Hotel Management</title>
+    <meta name="description" content="Manage every room, reservation, guest, payment, and operational task from one centralized system.">
+    <link rel="manifest" href="data:application/json,{}">
+    <style>
+        :root {
+            --bg: #07100D;
+            --panel: #0E1714;
+            --primary: #F2F5F3;
+            --muted: #89958F;
+            --accent: #B8FF3D;
+            --warning: #F5C84C;
+            --critical: #FF5C5C;
+            --info: #5CA8FF;
+            --border: #1a2a22;
+            --card: #111d18;
+            --hover: #16251f;
+            --radius: 8px;
+            --radius-sm: 5px;
+            --transition: 0.18s ease;
+            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        html {
+            font-size: 14px;
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--primary);
+            min-height: 100vh;
+            line-height: 1.5;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
+        }
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e3028;
+            border-radius: 20px;
+        }
+        a {
+            color: var(--info);
+            text-decoration: none;
+        }
+        button {
+            cursor: pointer;
+            font-family: inherit;
+            font-size: inherit;
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 0.55em 1.1em;
+            transition: var(--transition);
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4em;
+            white-space: nowrap;
+        }
+        button:active {
+            transform: scale(0.97);
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            filter: brightness(1.1);
+        }
+        .btn-secondary {
+            background: #1a2a22;
+            color: var(--primary);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover {
+            background: var(--hover);
+        }
+        .btn-danger {
+            background: var(--critical);
+            color: #fff;
+            font-weight: 600;
+        }
+        .btn-sm {
+            padding: 0.35em 0.7em;
+            font-size: 0.82rem;
+            border-radius: 4px;
+        }
+        .btn-xs {
+            padding: 0.2em 0.5em;
+            font-size: 0.72rem;
+            border-radius: 3px;
+        }
+        input,
+        select,
+        textarea {
+            font-family: inherit;
+            font-size: 0.93rem;
+            background: #0a1510;
+            border: 1px solid var(--border);
+            color: var(--primary);
+            padding: 0.55em 0.75em;
+            border-radius: var(--radius-sm);
+            width: 100%;
+            transition: var(--transition);
+            outline: none;
+        }
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(184, 255, 61, 0.08);
+        }
+        label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: block;
+            margin-bottom: 0.25em;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.2em 0.55em;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+        .badge-green {
+            background: #0f3d1f;
+            color: #6ee889;
+        }
+        .badge-blue {
+            background: #0f2a3d;
+            color: #6eb8ee;
+        }
+        .badge-lime {
+            background: #1f3d0f;
+            color: #b8ff3d;
+        }
+        .badge-yellow {
+            background: #3d300f;
+            color: #f5c84c;
+        }
+        .badge-red {
+            background: #3d0f0f;
+            color: #ff5c5c;
+        }
+        .badge-gray {
+            background: #1a1f1c;
+            color: #89958f;
+        }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.1rem;
+        }
+        .card-header {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--muted);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            margin-bottom: 0.5em;
+        }
+        .card-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        /* Layout */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 240px;
+            min-width: 240px;
+            background: var(--panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+            transition: transform 0.25s ease;
+        }
+        .sidebar-logo {
+            padding: 1.2rem 1.1rem;
+            border-bottom: 1px solid var(--border);
+            font-weight: 700;
+            font-size: 1.05rem;
+            letter-spacing: 0.03em;
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+        }
+        .sidebar-logo .dot {
+            width: 9px;
+            height: 9px;
+            background: var(--accent);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .sidebar-nav {
+            flex: 1;
+            padding: 0.5rem 0;
+        }
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 0.6em;
+            padding: 0.6em 1.1rem;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.88rem;
+            transition: var(--transition);
+            border-left: 3px solid transparent;
+            letter-spacing: 0.02em;
+        }
+        .sidebar-nav a:hover,
+        .sidebar-nav a.active {
+            color: var(--primary);
+            background: var(--hover);
+            border-left-color: var(--accent);
+        }
+        .sidebar-nav a .nav-icon {
+            width: 18px;
+            text-align: center;
+            flex-shrink: 0;
+            font-size: 0.9rem;
+        }
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.2rem;
+            max-width: 100%;
+        }
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.2rem;
+        }
+        .top-bar h1 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+        .top-bar .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 0.4em 0.9em;
+            border-radius: 20px;
+            font-size: 0.82rem;
+        }
+        .search-box {
+            position: relative;
+            max-width: 320px;
+        }
+        .search-box input {
+            padding-left: 2.2em;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        .search-box .search-icon {
+            position: absolute;
+            left: 0.7em;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+        /* Dashboard cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 0.7rem;
+            margin-bottom: 1.2rem;
+        }
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 0.9rem 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .stat-card:hover {
+            border-color: var(--accent);
+        }
+        .stat-card .stat-label {
+            font-size: 0.7rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.2em;
+        }
+        .stat-card .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        /* Room Grid */
+        .room-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 0.5rem;
+        }
+        .room-card {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            padding: 0.7rem;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+        .room-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+        .room-card .room-num {
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: 0.02em;
+        }
+        .room-card .room-status {
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 0.2em;
+        }
+        .room-card .room-guest {
+            font-size: 0.7rem;
+            color: var(--muted);
+            margin-top: 0.15em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .room-card .room-rate {
+            font-size: 0.68rem;
+            color: var(--muted);
+            margin-top: 0.1em;
+        }
+        .room-card.status-available {
+            border-color: #1a4a2a;
+            background: #0d1f14;
+        }
+        .room-card.status-occupied {
+            border-color: #3a4a1a;
+            background: #1a1f0d;
+        }
+        .room-card.status-reserved {
+            border-color: #1a3a4a;
+            background: #0d1a1f;
+        }
+        .room-card.status-cleaning {
+            border-color: #4a3a1a;
+            background: #1f1a0d;
+        }
+        .room-card.status-dirty {
+            border-color: #4a2a1a;
+            background: #1f150d;
+        }
+        .room-card.status-maintenance {
+            border-color: #4a1a1a;
+            background: #1f0d0d;
+        }
+        .room-card.status-outofservice {
+            border-color: #2a2a2a;
+            background: #151515;
+            opacity: 0.7;
+        }
+        /* Tables */
+        .table-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        th {
+            text-align: left;
+            padding: 0.6em 0.7em;
+            color: var(--muted);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        td {
+            padding: 0.5em 0.7em;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            white-space: nowrap;
+        }
+        tr:hover td {
+            background: var(--hover);
+        }
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .modal {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            max-width: 600px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 1.4rem;
+            animation: modalIn 0.2s ease;
+        }
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .modal h2 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            letter-spacing: -0.01em;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            margin-top: 1.2rem;
+            flex-wrap: wrap;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.6rem;
+        }
+        .form-row.span-3 {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+        .form-group {
+            margin-bottom: 0.7rem;
+        }
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 0.5em 1em;
+            cursor: pointer;
+            color: var(--muted);
+            border-bottom: 2px solid transparent;
+            font-size: 0.85rem;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+        .tab:hover {
+            color: var(--primary);
+        }
+        /* Alerts */
+        .alert {
+            padding: 0.6em 1em;
+            border-radius: var(--radius-sm);
+            margin-bottom: 0.5rem;
+            font-size: 0.82rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+        }
+        .alert-critical {
+            background: #3d0f0f;
+            border: 1px solid #5c2020;
+            color: #ff5c5c;
+        }
+        .alert-warning {
+            background: #3d300f;
+            border: 1px solid #5c4a20;
+            color: #f5c84c;
+        }
+        .alert-info {
+            background: #0f2a3d;
+            border: 1px solid #20405c;
+            color: #5ca8ff;
+        }
+        /* Mobile */
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 1.5rem;
+            padding: 0.3em;
+            cursor: pointer;
+        }
+        @media (max-width: 900px) {
+            .sidebar {
+                position: fixed;
+                transform: translateX(-100%);
+                width: 260px;
+                z-index: 300;
+                box-shadow: 4px 0 30px rgba(0, 0, 0, 0.6);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .mobile-toggle {
+                display: block;
+            }
+            .main-content {
+                padding: 0.8rem;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+                gap: 0.4rem;
+            }
+            .room-grid {
+                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+                gap: 0.35rem;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .form-row.span-3 {
+                grid-template-columns: 1fr 1fr;
+            }
+            .modal {
+                max-width: 95vw;
+                padding: 1rem;
+            }
+            .top-bar h1 {
+                font-size: 1.1rem;
+            }
+        }
+        @media (max-width: 500px) {
+            .room-grid {
+                grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+            }
+            .room-card {
+                padding: 0.4rem;
+                min-height: 60px;
+            }
+            .room-card .room-num {
+                font-size: 0.78rem;
+            }
+            .room-card .room-status {
+                font-size: 0.6rem;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .stat-card .stat-value {
+                font-size: 1.1rem;
+            }
+            .form-row.span-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+        .hidden {
+            display: none !important;
+        }
+        .text-muted {
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+        .text-accent {
+            color: var(--accent);
+        }
+        .text-critical {
+            color: var(--critical);
+        }
+        .text-warning {
+            color: var(--warning);
+        }
+        .mb-1 {
+            margin-bottom: 0.5rem;
+        }
+        .mb-2 {
+            margin-bottom: 1rem;
+        }
+        .mt-1 {
+            margin-top: 0.5rem;
+        }
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1a3a1a;
+            border: 1px solid #3a5a3a;
+            color: #b8ff3d;
+            padding: 0.7em 1.2em;
+            border-radius: var(--radius);
+            z-index: 999;
+            font-weight: 500;
+            animation: toastIn 0.3s ease;
+            font-size: 0.88rem;
+        }
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .calendar-day {
+            display: inline-block;
+            width: 36px;
+            height: 36px;
+            line-height: 36px;
+            text-align: center;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: var(--transition);
+            margin: 2px;
+        }
+        .calendar-day:hover {
+            background: var(--hover);
+        }
+        .calendar-day.selected {
+            background: var(--accent);
+            color: #000;
+            font-weight: 700;
+        }
+        .calendar-day.occupied-range {
+            background: #2a1a1a;
+            color: #ff5c5c;
+            cursor: not-allowed;
+        }
+        .calendar-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--muted);
+            margin-bottom: 0.3rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <span class="dot"></span> AMUD MOTEL
+            </div>
+            <nav class="sidebar-nav" id="sidebarNav">
+                <a href="#" data-view="dashboard" class="active"><span class="nav-icon">📊</span> Dashboard</a>
+                <a href="#" data-view="rooms"><span class="nav-icon">🚪</span> Rooms</a>
+                <a href="#" data-view="reservations"><span class="nav-icon">📅</span> Reservations</a>
+                <a href="#" data-view="calendar"><span class="nav-icon">🗓️</span> Calendar</a>
+                <a href="#" data-view="guests"><span class="nav-icon">👤</span> Guests</a>
+                <a href="#" data-view="checkin"><span class="nav-icon">🏨</span> Check-In/Out</a>
+                <a href="#" data-view="payments"><span class="nav-icon">💳</span> Payments</a>
+                <a href="#" data-view="housekeeping"><span class="nav-icon">🧹</span> Housekeeping</a>
+                <a href="#" data-view="maintenance"><span class="nav-icon">🔧</span> Maintenance</a>
+                <a href="#" data-view="inventory"><span class="nav-icon">📦</span> Inventory</a>
+                <a href="#" data-view="expenses"><span class="nav-icon">💰</span> Expenses</a>
+                <a href="#" data-view="revenue"><span class="nav-icon">📈</span> Revenue</a>
+                <a href="#" data-view="reports"><span class="nav-icon">📋</span> Reports</a>
+                <a href="#" data-view="complaints"><span class="nav-icon">📝</span> Complaints</a>
+                <a href="#" data-view="staff"><span class="nav-icon">👥</span> Staff</a>
+                <a href="#" data-view="settings"><span class="nav-icon">⚙️</span> Settings</a>
+            </nav>
+        </aside>
+        <!-- Main -->
+        <main class="main-content" id="mainContent">
+            <div class="top-bar">
+                <div style="display:flex;align-items:center;gap:0.6rem;">
+                    <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">☰</button>
+                    <h1 id="viewTitle">Dashboard</h1>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="globalSearch" placeholder="Search guests, rooms, reservations...">
+                    </div>
+                    <div class="user-badge">
+                        <span>👤</span> <span id="currentRole">Manager</span>
+                    </div>
+                </div>
+            </div>
+            <div id="viewContainer">
+                <!-- Dynamic content rendered here -->
+            </div>
+        </main>
+    </div>
+    <!-- Toast container -->
+    <div id="toastContainer"></div>
+    <!-- Modal container -->
+    <div id="modalContainer"></div>
+
+    <script>
+        // ──────────────────────────────────────
+        // AMUD MOTEL COMMAND CENTER — COMPLETE SYSTEM
+        // ──────────────────────────────────────
+
+        // ============ DATA STORE ============
+        const STORAGE_KEY = 'amud_motel_data';
+        let appData = loadData();
+
+        function getDefaultData() {
+            const rooms = [];
+            for (let i = 1; i <= 30; i++) {
+                const num = i.toString().padStart(2, '0');
+                rooms.push({
+                    id: `room-${num}`,
+                    roomNumber: num,
+                    roomType: 'Standard',
+                    floor: Math.ceil(i / 10),
+                    capacity: 2,
+                    bedType: 'Double',
+                    standardRate: 1200,
+                    currentRate: 1200,
+                    amenities: ['WiFi', 'TV', 'Shower'],
+                    status: i <= 5 ? 'occupied' : i <= 8 ? 'reserved' : i <= 10 ? 'cleaning' : i <= 11 ? 'dirty' : i <=
+                        12 ? 'maintenance' : 'available',
+                    description: `Room ${num} - Standard Double`,
+                    currentGuestId: i <= 5 ? `guest-demo-${i}` : null,
+                    checkInDate: i <= 5 ? '2026-08-10' : null,
+                    checkOutDate: i <= 5 ? '2026-08-14' : null,
+                    housekeepingStatus: i <= 10 ? 'clean' : 'ready',
+                    notes: '',
+                });
+            }
+            return {
+                rooms,
+                guests: [
+                    { id: 'guest-demo-1', fullName: 'Demo Guest 01', phone: '+251911000101', email: 'demo1@example.com',
+                        country: 'Ethiopia', city: 'Addis Ababa', idType: 'Passport', idNumber: 'DEMO-001',
+                        notes: 'Demo data', totalNights: 4, totalSpending: 4800 },
+                    { id: 'guest-demo-2', fullName: 'Demo Guest 02', phone: '+251911000102', email: 'demo2@example.com',
+                        country: 'Ethiopia', city: 'Dire Dawa', idType: 'Passport', idNumber: 'DEMO-002',
+                    notes: 'Demo data', totalNights: 3, totalSpending: 3600 },
+                    { id: 'guest-demo-3', fullName: 'Demo Guest 03', phone: '+251911000103', email: 'demo3@example.com',
+                        country: 'Ethiopia', city: 'Bahir Dar', idType: 'National ID', idNumber: 'DEMO-003',
+                        notes: 'Demo data', totalNights: 5, totalSpending: 6000 },
+                    { id: 'guest-demo-4', fullName: 'Demo Guest 04', phone: '+251911000104', email: 'demo4@example.com',
+                        country: 'Ethiopia', city: 'Hawassa', idType: 'Passport', idNumber: 'DEMO-004',
+                    notes: 'Demo data', totalNights: 2, totalSpending: 2400 },
+                    { id: 'guest-demo-5', fullName: 'Demo Guest 05', phone: '+251911000105', email: 'demo5@example.com',
+                        country: 'Ethiopia', city: 'Mekelle', idType: 'National ID', idNumber: 'DEMO-005',
+                        notes: 'Demo data', totalNights: 1, totalSpending: 1200 },
+                ],
+                reservations: [
+                    { id: 'res-001', guestId: 'guest-demo-1', roomId: 'room-01', checkInDate: '2026-08-10',
+                        checkInTime: '14:00', checkOutDate: '2026-08-14', guests: 2, nights: 4, ratePerNight: 1200,
+                        discount: 0, tax: 0, totalAmount: 4800, deposit: 2000, balance: 2800,
+                        paymentStatus: 'partial', reservationStatus: 'checked_in', notes: 'Demo reservation' },
+                    { id: 'res-002', guestId: 'guest-demo-2', roomId: 'room-02', checkInDate: '2026-08-11',
+                        checkInTime: '15:00', checkOutDate: '2026-08-14', guests: 1, nights: 3, ratePerNight: 1200,
+                        discount: 0, tax: 0, totalAmount: 3600, deposit: 3600, balance: 0, paymentStatus: 'paid',
+                        reservationStatus: 'checked_in', notes: 'Demo reservation' },
+                    { id: 'res-003', guestId: 'guest-demo-3', roomId: 'room-03', checkInDate: '2026-08-09',
+                        checkInTime: '13:00', checkOutDate: '2026-08-14', guests: 2, nights: 5, ratePerNight: 1200,
+                        discount: 200, tax: 0, totalAmount: 5800, deposit: 3000, balance: 2800,
+                        paymentStatus: 'partial', reservationStatus: 'checked_in', notes: 'Demo reservation' },
+                    { id: 'res-004', guestId: 'guest-demo-4', roomId: 'room-04', checkInDate: '2026-08-12',
+                        checkInTime: '12:00', checkOutDate: '2026-08-14', guests: 2, nights: 2, ratePerNight: 1200,
+                        discount: 0, tax: 0, totalAmount: 2400, deposit: 2400, balance: 0, paymentStatus: 'paid',
+                        reservationStatus: 'checked_in', notes: 'Demo reservation' },
+                    { id: 'res-005', guestId: 'guest-demo-5', roomId: 'room-05', checkInDate: '2026-08-12',
+                        checkInTime: '16:00', checkOutDate: '2026-08-13', guests: 1, nights: 1, ratePerNight: 1200,
+                        discount: 0, tax: 0, totalAmount: 1200, deposit: 0, balance: 1200,
+                        paymentStatus: 'unpaid', reservationStatus: 'checked_in', notes: 'Demo reservation' },
+                    { id: 'res-006', guestId: 'guest-demo-1', roomId: 'room-06', checkInDate: '2026-08-15',
+                        checkInTime: '14:00', checkOutDate: '2026-08-17', guests: 1, nights: 2, ratePerNight: 1200,
+                        discount: 0, tax: 0, totalAmount: 2400, deposit: 1000, balance: 1400,
+                        paymentStatus: 'partial', reservationStatus: 'confirmed', notes: 'Future reservation' },
+                    { id: 'res-007', guestId: 'guest-demo-2', roomId: 'room-07', checkInDate: '2026-08-14',
+                        checkInTime: '13:00', checkOutDate: '2026-08-18', guests: 2, nights: 4, ratePerNight: 1200,
+                        discount: 100, tax: 0, totalAmount: 4700, deposit: 2000, balance: 2700,
+                        paymentStatus: 'partial', reservationStatus: 'confirmed', notes: 'Future reservation' },
+                    { id: 'res-008', guestId: 'guest-demo-3', roomId: 'room-08', checkInDate: '2026-08-13',
+                        checkInTime: '15:00', checkOutDate: '2026-08-16', guests: 1, nights: 3, ratePerNight: 1200,
+                        discount: 0, tax: 0, totalAmount: 3600, deposit: 0, balance: 3600, paymentStatus: 'unpaid',
+                        reservationStatus: 'confirmed', notes: 'Future reservation' },
+                ],
+                payments: [
+                    { id: 'pay-001', guestId: 'guest-demo-1', reservationId: 'res-001', roomId: 'room-01', amount: 2000,
+                        currency: 'ETB', method: 'Cash', date: '2026-08-10', time: '14:05', receivedBy: 'Receptionist',
+                        reference: 'DEP-001', notes: 'Deposit' },
+                    { id: 'pay-002', guestId: 'guest-demo-2', reservationId: 'res-002', roomId: 'room-02', amount: 3600,
+                        currency: 'ETB', method: 'Bank Transfer', date: '2026-08-11', time: '15:10',
+                        receivedBy: 'Receptionist', reference: 'DEP-002', notes: 'Full payment' },
+                ],
+                housekeepingTasks: [
+                    { id: 'hk-001', roomId: 'room-09', assignedStaff: 'HK Staff 1', taskType: 'Full Clean',
+                        priority: 'Normal', createdTime: '2026-08-12 08:00', startedTime: '2026-08-12 08:30',
+                        completedTime: null, notes: '', status: 'in_progress' },
+                    { id: 'hk-002', roomId: 'room-10', assignedStaff: 'HK Staff 2', taskType: 'Full Clean',
+                        priority: 'High', createdTime: '2026-08-12 07:00', startedTime: null, completedTime: null,
+                        notes: 'Checkout today', status: 'pending' },
+                ],
+                maintenanceRequests: [
+                    { id: 'maint-001', roomId: 'room-11', problem: 'Leaking faucet', category: 'Plumbing',
+                        priority: 'Medium', reportedBy: 'Housekeeping', date: '2026-08-11',
+                        assignedTechnician: 'Tech 1', status: 'in_progress', estimatedCost: 500, actualCost: 0,
+                        resolution: '', completionDate: null },
+                    { id: 'maint-002', roomId: 'room-12', problem: 'AC not cooling', category: 'Air Conditioning',
+                        priority: 'High', reportedBy: 'Guest', date: '2026-08-12', assignedTechnician: null,
+                        status: 'reported', estimatedCost: 1200, actualCost: 0, resolution: '',
+                    completionDate: null },
+                ],
+                expenses: [
+                    { id: 'exp-001', date: '2026-08-11', category: 'Utilities', description: 'Electricity bill',
+                        amount: 3500, method: 'Bank Transfer', supplier: 'Ethiopian Electric', department: 'General',
+                        recordedBy: 'Manager', notes: 'Monthly' },
+                    { id: 'exp-002', date: '2026-08-12', category: 'Cleaning', description: 'Cleaning supplies',
+                        amount: 800, method: 'Cash', supplier: 'Local Store', department: 'Housekeeping',
+                        recordedBy: 'Manager', notes: '' },
+                ],
+                inventoryItems: [
+                    { id: 'inv-001', item: 'Toilet Paper', category: 'Toiletries', unit: 'rolls', currentQty: 45,
+                        minQty: 30, reorderLevel: 50, supplier: 'Supplier A', unitCost: 25, lastUpdated: '2026-08-10',
+                        status: 'ok' },
+                    { id: 'inv-002', item: 'Soap Bars', category: 'Toiletries', unit: 'pieces', currentQty: 18,
+                        minQty: 20, reorderLevel: 40, supplier: 'Supplier A', unitCost: 15, lastUpdated: '2026-08-11',
+                        status: 'low' },
+                    { id: 'inv-003', item: 'Bottled Water', category: 'Beverages', unit: 'bottles', currentQty: 5,
+                        minQty: 15, reorderLevel: 30, supplier: 'Supplier B', unitCost: 20, lastUpdated: '2026-08-12',
+                        status: 'critical' },
+                    { id: 'inv-004', item: 'Bed Sheets', category: 'Linens', unit: 'sets', currentQty: 60, minQty: 20,
+                        reorderLevel: 40, supplier: 'Supplier C', unitCost: 350, lastUpdated: '2026-08-09',
+                    status: 'ok' },
+                ],
+                complaints: [
+                    { id: 'comp-001', guestId: 'guest-demo-3', roomId: 'room-03', date: '2026-08-11',
+                        category: 'Noise', description: 'Noise from adjacent room', priority: 'Medium',
+                        assignedStaff: 'Manager', response: 'Spoke to neighboring guest', resolution: '',
+                        status: 'resolved' },
+                ],
+                staff: [
+                    { id: 'staff-001', name: 'Abebe Kebede', role: 'Manager', department: 'Management',
+                        phone: '+251911000201', status: 'Active', shift: 'Morning', notes: '' },
+                    { id: 'staff-002', name: 'Tigist Haile', role: 'Receptionist', department: 'Front Desk',
+                        phone: '+251911000202', status: 'Active', shift: 'Morning', notes: '' },
+                    { id: 'staff-003', name: 'HK Staff 1', role: 'Housekeeping', department: 'Housekeeping',
+                        phone: '+251911000203', status: 'Active', shift: 'Morning', notes: '' },
+                    { id: 'staff-004', name: 'HK Staff 2', role: 'Housekeeping', department: 'Housekeeping',
+                        phone: '+251911000204', status: 'Active', shift: 'Afternoon', notes: '' },
+                    { id: 'staff-005', name: 'Tech 1', role: 'Maintenance', department: 'Maintenance',
+                        phone: '+251911000205', status: 'Active', shift: 'Morning', notes: '' },
+                ],
+                shifts: [],
+                settings: {
+                    motelName: 'Amud Motel',
+                    phone: '+251-XXX-XXXXXX',
+                    email: 'info@amudmotel.com',
+                    address: 'Ethiopia',
+                    currency: 'ETB',
+                    checkInTime: '14:00',
+                    checkOutTime: '11:00',
+                    taxRate: 0,
+                    taxName: 'VAT',
+                },
+                auditLogs: [],
+                nextIds: { guest: 6, reservation: 9, payment: 3, housekeeping: 3, maintenance: 3, expense: 3,
+                    inventory: 5, complaint: 2, staff: 6, receipt: 1 },
+            };
+        }
+
+        function loadData() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) return JSON.parse(raw);
+            } catch (e) {}
+            const d = getDefaultData();
+            saveData(d);
+            return d;
+        }
+
+        function saveData(data) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            } catch (e) {
+                showToast('⚠️ Storage full. Please clear some data.', 'warning');
+            }
+            appData = data || appData;
+        }
+
+        function persistData() { saveData(appData); }
+
+        function generateId(prefix) {
+            const key = prefix.replace(/[^a-z]/g, '');
+            if (!appData.nextIds) appData.nextIds = {};
+            if (!appData.nextIds[key]) appData.nextIds[key] = 1;
+            const id = `${prefix}-${appData.nextIds[key].toString().padStart(3, '0')}`;
+            appData.nextIds[key]++;
+            persistData();
+            return id;
+        }
+
+        // ============ HELPERS ============
+        function getRoomById(id) { return appData.rooms.find(r => r.id === id); }
+
+        function getGuestById(id) { return appData.guests.find(g => g.id === id); }
+
+        function getReservationById(id) { return appData.reservations.find(r => r.id === id); }
+
+        function getReservationsForRoom(roomId) { return appData.reservations.filter(r => r.roomId === roomId); }
+
+        function getActiveReservationForRoom(roomId) {
+            return appData.reservations.find(r => r.roomId === roomId && ['checked_in', 'confirmed'].includes(r
+                .reservationStatus));
+        }
+
+        function isRoomAvailable(roomId, checkIn, checkOut) {
+            const room = getRoomById(roomId);
+            if (!room || ['maintenance', 'outofservice'].includes(room.status)) return false;
+            const reservations = appData.reservations.filter(r =>
+                r.roomId === roomId && !['cancelled', 'checked_out', 'no_show'].includes(r.reservationStatus)
+            );
+            for (const res of reservations) {
+                const resIn = res.checkInDate;
+                const resOut = res.checkOutDate;
+                if (checkIn < resOut && checkOut > resIn) return false;
+            }
+            return true;
+        }
+
+        function getAvailableRooms(checkIn, checkOut) {
+            return appData.rooms.filter(r => isRoomAvailable(r.id, checkIn, checkOut));
+        }
+
+        function formatCurrency(amount) {
+            const curr = appData.settings?.currency || 'ETB';
+            return `${curr} ${Number(amount).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '—';
+            const d = new Date(dateStr + 'T00:00:00');
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function todayStr() { return new Date().toISOString().split('T')[0]; }
+
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const el = document.createElement('div');
+            el.className = 'toast';
+            el.style.background = type === 'warning' ? '#3d300f' : type === 'error' ? '#3d0f0f' : '#1a3a1a';
+            el.style.borderColor = type === 'warning' ? '#5c4a20' : type === 'error' ? '#5c2020' : '#3a5a3a';
+            el.style.color = type === 'warning' ? '#f5c84c' : type === 'error' ? '#ff5c5c' : '#b8ff3d';
+            el.textContent = msg;
+            container.appendChild(el);
+            setTimeout(() => { el.remove(); }, 3000);
+        }
+
+        function openModal(title, contentHTML, onSave, saveLabel = 'Save') {
+            const container = document.getElementById('modalContainer');
+            container.innerHTML = `
+            <div class="modal-overlay" id="modalOverlay">
+              <div class="modal">
+                <div class="flex-between mb-2"><h2>${title}</h2><button class="btn-sm btn-secondary" id="modalClose">✕</button></div>
+                <div id="modalBody">${contentHTML}</div>
+                <div class="modal-actions">
+                  <button class="btn-secondary" id="modalCancel">Cancel</button>
+                  ${onSave ? `<button class="btn-primary" id="modalSave">${saveLabel}</button>` : ''}
+                </div>
+              </div>
+            </div>`;
+            document.getElementById('modalClose').addEventListener('click', closeModal);
+            document.getElementById('modalCancel').addEventListener('click', closeModal);
+            document.getElementById('modalOverlay').addEventListener('click', function(e) { if (e.target === this)
+                    closeModal(); });
+            if (onSave) {
+                document.getElementById('modalSave').addEventListener('click', () => {
+                    const result = onSave();
+                    if (result !== false) closeModal();
+                });
+            }
+            return document.getElementById('modalBody');
+        }
+
+        function closeModal() { document.getElementById('modalContainer').innerHTML = ''; }
+
+        // ============ NAVIGATION ============
+        let currentView = 'dashboard';
+
+        function navigateTo(view) {
+            currentView = view;
+            document.querySelectorAll('#sidebarNav a').forEach(a => a.classList.remove('active'));
+            const link = document.querySelector(`#sidebarNav a[data-view="${view}"]`);
+            if (link) link.classList.add('active');
+            document.getElementById('viewTitle').textContent = view.charAt(0).toUpperCase() + view.slice(1).replace(
+                /([A-Z])/g, ' $1');
+            renderView(view);
+            document.getElementById('sidebar').classList.remove('open');
+        }
+
+        function renderView(view) {
+            const container = document.getElementById('viewContainer');
+            switch (view) {
+                case 'dashboard':
+                    container.innerHTML = renderDashboard();
+                    break;
+                case 'rooms':
+                    container.innerHTML = renderRoomsView();
+                    break;
+                case 'reservations':
+                    container.innerHTML = renderReservationsView();
+                    break;
+                case 'calendar':
+                    container.innerHTML = renderCalendarView();
+                    break;
+                case 'guests':
+                    container.innerHTML = renderGuestsView();
+                    break;
+                case 'checkin':
+                    container.innerHTML = renderCheckInOutView();
+                    break;
+                case 'payments':
+                    container.innerHTML = renderPaymentsView();
+                    break;
+                case 'housekeeping':
+                    container.innerHTML = renderHousekeepingView();
+                    break;
+                case 'maintenance':
+                    container.innerHTML = renderMaintenanceView();
+                    break;
+                case 'inventory':
+                    container.innerHTML = renderInventoryView();
+                    break;
+                case 'expenses':
+                    container.innerHTML = renderExpensesView();
+                    break;
+                case 'revenue':
+                    container.innerHTML = renderRevenueView();
+                    break;
+                case 'reports':
+                    container.innerHTML = renderReportsView();
+                    break;
+                case 'complaints':
+                    container.innerHTML = renderComplaintsView();
+                    break;
+                case 'staff':
+                    container.innerHTML = renderStaffView();
+                    break;
+                case 'settings':
+                    container.innerHTML = renderSettingsView();
+                    break;
+                default:
+                    container.innerHTML = renderDashboard();
+            }
+            attachViewEvents(view);
+        }
+
+        function attachViewEvents(view) {
+            // Global search
+            const searchInput = document.getElementById('globalSearch');
+            if (searchInput && !searchInput._bound) {
+                searchInput._bound = true;
+                searchInput.addEventListener('input', function() {
+                    const q = this.value.toLowerCase().trim();
+                    if (q.length < 2 && q.length > 0) return;
+                    if (q.length >= 2 || q.length === 0) {
+                        if (currentView === 'guests') renderGuestsView(q);
+                        if (currentView === 'reservations') renderReservationsView(q);
+                        if (currentView === 'rooms') renderRoomsView(q);
+                    }
+                });
+            }
+        }
+
+        // ============ DASHBOARD ============
+        function renderDashboard() {
+            const today = todayStr();
+            const occupied = appData.rooms.filter(r => r.status === 'occupied').length;
+            const available = appData.rooms.filter(r => r.status === 'available').length;
+            const reserved = appData.rooms.filter(r => r.status === 'reserved').length;
+            const cleaning = appData.rooms.filter(r => r.status === 'cleaning').length;
+            const maintenance = appData.rooms.filter(r => r.status === 'maintenance').length;
+            const todayCheckIns = appData.reservations.filter(r => r.checkInDate === today && r.reservationStatus ===
+                'confirmed').length;
+            const todayCheckOuts = appData.reservations.filter(r => r.checkOutDate === today && r.reservationStatus ===
+                'checked_in').length;
+            const todayRevenue = appData.payments.filter(p => p.date === today).reduce((s, p) => s + p.amount, 0);
+            const occupancyRate = appData.rooms.length > 0 ? Math.round((occupied / appData.rooms.length) * 100) : 0;
+            const alerts = [];
+            appData.rooms.forEach(r => { if (r.status === 'maintenance') alerts.push(
+                    `🔴 Room ${r.roomNumber} under maintenance`); });
+            appData.reservations.filter(r => r.checkOutDate === today && r.reservationStatus === 'checked_in').forEach(r =>
+                alerts.push(`🟡 Room ${getRoomById(r.roomId)?.roomNumber || '?'} checkout today`));
+            appData.rooms.filter(r => r.status === 'dirty').forEach(r => alerts.push(
+                `🟡 Room ${r.roomNumber} cleaning required`));
+            appData.inventoryItems.filter(i => i.status === 'critical' || i.status === 'low').forEach(i => alerts.push(
+                `🟡 ${i.item} below reorder level (${i.currentQty} ${i.unit})`));
+            if (todayCheckIns > 0) alerts.push(`🔵 ${todayCheckIns} arrivals today`);
+
+            let html = `
+            <div class="stats-grid">
+              <div class="stat-card" onclick="navigateTo('rooms')"><div class="stat-label">Total Rooms</div><div class="stat-value">30</div></div>
+              <div class="stat-card" onclick="navigateTo('rooms')"><div class="stat-label">Occupied</div><div class="stat-value" style="color:#b8ff3d">${occupied}</div></div>
+              <div class="stat-card" onclick="navigateTo('rooms')"><div class="stat-label">Available</div><div class="stat-value" style="color:#6ee889">${available}</div></div>
+              <div class="stat-card" onclick="navigateTo('rooms')"><div class="stat-label">Reserved</div><div class="stat-value" style="color:#6eb8ee">${reserved}</div></div>
+              <div class="stat-card" onclick="navigateTo('housekeeping')"><div class="stat-label">Cleaning</div><div class="stat-value" style="color:#f5c84c">${cleaning}</div></div>
+              <div class="stat-card" onclick="navigateTo('maintenance')"><div class="stat-label">Maintenance</div><div class="stat-value" style="color:#ff5c5c">${maintenance}</div></div>
+              <div class="stat-card"><div class="stat-label">Today's Check-Ins</div><div class="stat-value">${todayCheckIns}</div></div>
+              <div class="stat-card"><div class="stat-label">Today's Check-Outs</div><div class="stat-value">${todayCheckOuts}</div></div>
+              <div class="stat-card"><div class="stat-label">Today's Revenue</div><div class="stat-value">${formatCurrency(todayRevenue)}</div></div>
+              <div class="stat-card"><div class="stat-label">Occupancy Rate</div><div class="stat-value">${occupancyRate}%</div></div>
+            </div>`;
+            if (alerts.length > 0) {
+                html += `<div class="mb-2"><strong>⚠️ Alerts</strong></div>`;
+                alerts.forEach(a => {
+                    const cls = a.startsWith('🔴') ? 'alert-critical' : a.startsWith('🟡') ? 'alert-warning' :
+                        'alert-info';
+                    html += `<div class="alert ${cls}">${a}</div>`;
+                });
+            }
+            html += `<div class="card mt-1"><div class="card-header">Quick Room Overview</div>
+            <div class="room-grid">${appData.rooms.map(r => renderRoomCard(r)).join('')}</div></div>`;
+            return html;
+        }
+
+        function renderRoomCard(room) {
+            const guest = room.currentGuestId ? getGuestById(room.currentGuestId) : null;
+            const statusClass = `status-${room.status}`;
+            return `
+            <div class="room-card ${statusClass}" onclick="openRoomDetail('${room.id}')">
+              <div class="room-num">ROOM ${room.roomNumber}</div>
+              <div class="room-status">${room.status.toUpperCase()}</div>
+              ${guest ? `<div class="room-guest">${guest.fullName}</div>` : ''}
+              <div class="room-rate">${formatCurrency(room.currentRate)}</div>
+            </div>`;
+        }
+
+        function openRoomDetail(roomId) {
+            const room = getRoomById(roomId);
+            if (!room) return;
+            const guest = room.currentGuestId ? getGuestById(room.currentGuestId) : null;
+            const activeRes = getActiveReservationForRoom(roomId);
+            const content = `
+            <div class="form-row"><div class="form-group"><label>Room</label><p><strong>ROOM ${room.roomNumber}</strong></p></div>
+            <div class="form-group"><label>Type</label><p>${room.roomType} | ${room.bedType} | Capacity: ${room.capacity}</p></div></div>
+            <div class="form-row"><div class="form-group"><label>Status</label><p><span class="badge badge-${room.status==='available'?'green':room.status==='occupied'?'lime':room.status==='reserved'?'blue':room.status==='cleaning'?'yellow':room.status==='maintenance'?'red':'gray'}">${room.status.toUpperCase()}</span></p></div>
+            <div class="form-group"><label>Rate</label><p>${formatCurrency(room.currentRate)} / night</p></div></div>
+            ${guest ? `<div class="form-row"><div class="form-group"><label>Current Guest</label><p>${guest.fullName} (${guest.phone})</p></div>
+            <div class="form-group"><label>Stay</label><p>${formatDate(room.checkInDate)} → ${formatDate(room.checkOutDate)}</p></div></div>` : '<p class="text-muted">No guest currently assigned.</p>'}
+            ${activeRes ? `<div class="form-group"><label>Reservation</label><p>${activeRes.id} | ${activeRes.reservationStatus.toUpperCase()} | Balance: ${formatCurrency(activeRes.balance)}</p></div>` : ''}
+            <div class="form-group"><label>Amenities</label><p>${(room.amenities||[]).join(', ') || 'None'}</p></div>
+            <div class="flex-between mt-1">
+              ${room.status==='reserved'||room.status==='available'?`<button class="btn-primary btn-sm" onclick="checkInRoom('${room.id}')">CHECK IN</button>`:''}
+              ${room.status==='occupied'?`<button class="btn-danger btn-sm" onclick="checkOutRoom('${room.id}')">CHECK OUT</button>`:''}
+              ${room.status==='available'?`<button class="btn-secondary btn-sm" onclick="reserveRoom('${room.id}')">RESERVE</button>`:''}
+              <button class="btn-secondary btn-sm" onclick="changeRoomStatus('${room.id}')">CHANGE STATUS</button>
+              <button class="btn-secondary btn-sm" onclick="reportMaintenance('${room.id}')">REPORT MAINTENANCE</button>
+            </div>`;
+            openModal(`Room ${room.roomNumber} Details`, content, null);
+            window._roomDetailRoomId = roomId;
+        }
+
+        function changeRoomStatus(roomId) {
+            const room = getRoomById(roomId);
+            if (!room) return;
+            const statuses = ['available', 'reserved', 'occupied', 'cleaning', 'dirty', 'maintenance', 'outofservice',
+                'inspection'
+            ];
+            const content = `
+            <div class="form-group"><label>Current Status</label><p><strong>${room.status.toUpperCase()}</strong></p></div>
+            <div class="form-group"><label>New Status</label><select id="newRoomStatus">${statuses.map(s=>`<option value="${s}" ${s===room.status?'selected':''}>${s.toUpperCase()}</option>`).join('')}</select></div>
+            <div class="form-group"><label>Notes</label><input type="text" id="statusNotes" placeholder="Optional note"></div>`;
+            openModal(`Change Room ${room.roomNumber} Status`, content, () => {
+                const newStatus = document.getElementById('newRoomStatus').value;
+                const notes = document.getElementById('statusNotes').value;
+                room.status = newStatus;
+                if (notes) room.notes = (room.notes ? room.notes + '; ' : '') + notes;
+                if (newStatus === 'available') { room.currentGuestId = null;
+                    room.checkInDate = null;
+                    room.checkOutDate = null; }
+                persistData();
+                showToast(`Room ${room.roomNumber} status updated to ${newStatus.toUpperCase()}.`);
+                navigateTo(currentView);
+            }, 'Update Status');
+        }
+
+        function reportMaintenance(roomId) {
+            const room = getRoomById(roomId);
+            if (!room) return;
+            const content = `
+            <div class="form-group"><label>Room</label><p>ROOM ${room.roomNumber}</p></div>
+            <div class="form-group"><label>Problem</label><input type="text" id="maintProblem" placeholder="Describe the issue"></div>
+            <div class="form-group"><label>Category</label><select id="maintCategory">${['Plumbing','Electrical','Air Conditioning','Furniture','Bathroom','Lighting','Internet','Other'].map(c=>`<option>${c}</option>`).join('')}</select></div>
+            <div class="form-group"><label>Priority</label><select id="maintPriority"><option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option></select></div>`;
+            openModal('Report Maintenance', content, () => {
+                const maint = {
+                    id: generateId('maint'),
+                    roomId,
+                    problem: document.getElementById('maintProblem').value,
+                    category: document.getElementById('maintCategory').value,
+                    priority: document.getElementById('maintPriority').value,
+                    reportedBy: 'Staff',
+                    date: todayStr(),
+                    assignedTechnician: null,
+                    status: 'reported',
+                    estimatedCost: 0,
+                    actualCost: 0,
+                    resolution: '',
+                    completionDate: null,
+                };
+                appData.maintenanceRequests.push(maint);
+                room.status = 'maintenance';
+                persistData();
+                showToast('Maintenance reported.');
+                navigateTo(currentView);
+            }, 'Report');
+        }
+
+        function checkInRoom(roomId) {
+            const room = getRoomById(roomId);
+            if (!room) return;
+            const reservations = appData.reservations.filter(r => r.roomId === roomId && r.reservationStatus ===
+                'confirmed');
+            const content = `
+            <div class="form-group"><label>Room</label><p>ROOM ${room.roomNumber} — ${room.roomType}</p></div>
+            ${reservations.length>0?`<div class="form-group"><label>Existing Reservation</label><select id="checkinResId"><option value="">Walk-in (no reservation)</option>${reservations.map(r=>`<option value="${r.id}">${r.id} - ${getGuestById(r.guestId)?.fullName||'Unknown'}</option>`).join('')}</select></div>`:'<p class="text-muted">No existing reservation — walk-in check-in.</p>'}
+            <div class="form-group"><label>Guest</label><select id="checkinGuestId"><option value="">Select guest</option>${appData.guests.map(g=>`<option value="${g.id}">${g.fullName}</option>`).join('')}</select></div>
+            <div class="form-row"><div class="form-group"><label>Check-In Date</label><input type="date" id="checkinDate" value="${todayStr()}"></div>
+            <div class="form-group"><label>Check-Out Date</label><input type="date" id="checkoutDate" value="${new Date(Date.now()+86400000*2).toISOString().split('T')[0]}"></div></div>
+            <div class="form-row"><div class="form-group"><label>Rate/Night</label><input type="number" id="checkinRate" value="${room.currentRate}"></div>
+            <div class="form-group"><label>Deposit Received</label><input type="number" id="checkinDeposit" value="0" step="100"></div></div>`;
+            openModal(`Check In — Room ${room.roomNumber}`, content, () => {
+                const resId = document.getElementById('checkinResId')?.value;
+                const guestId = document.getElementById('checkinGuestId').value;
+                const checkInDate = document.getElementById('checkinDate').value;
+                const checkOutDate = document.getElementById('checkoutDate').value;
+                const rate = parseInt(document.getElementById('checkinRate').value) || room.currentRate;
+                const deposit = parseInt(document.getElementById('checkinDeposit').value) || 0;
+                if (!guestId) { showToast('Please select a guest.', 'warning'); return false; }
+                if (checkOutDate <= checkInDate) { showToast('Check-out must be after check-in.',
+                'warning'); return false; }
+                const nights = Math.max(1, Math.round((new Date(checkOutDate) - new Date(checkInDate)) / 86400000));
+                const totalAmount = nights * rate;
+                let reservation;
+                if (resId) {
+                    reservation = getReservationById(resId);
+                    if (reservation) {
+                        reservation.reservationStatus = 'checked_in';
+                        reservation.checkInDate = checkInDate;
+                        reservation.checkOutDate = checkOutDate;
+                        reservation.nights = nights;
+                        reservation.ratePerNight = rate;
+                        reservation.totalAmount = totalAmount;
+                        reservation.deposit = (reservation.deposit || 0) + deposit;
+                        reservation.balance = totalAmount - reservation.deposit;
+                        reservation.paymentStatus = reservation.balance <= 0 ? 'paid' : reservation.deposit > 0 ?
+                            'partial' : 'unpaid';
+                    }
+                } else {
+                    reservation = {
+                        id: generateId('res'),
+                        guestId,
+                        roomId,
+                        checkInDate,
+                        checkInTime: appData.settings.checkInTime || '14:00',
+                        checkOutDate,
+                        guests: 1,
+                        nights,
+                        ratePerNight: rate,
+                        discount: 0,
+                        tax: 0,
+                        totalAmount,
+                        deposit,
+                        balance: totalAmount - deposit,
+                        paymentStatus: deposit >= totalAmount ? 'paid' : deposit > 0 ? 'partial' : 'unpaid',
+                        reservationStatus: 'checked_in',
+                        notes: 'Walk-in check-in',
+                    };
+                    appData.reservations.push(reservation);
+                }
+                if (deposit > 0) {
+                    appData.payments.push({
+                        id: generateId('pay'),
+                        guestId,
+                        reservationId: reservation.id,
+                        roomId,
+                        amount: deposit,
+                        currency: appData.settings.currency,
+                        method: 'Cash',
+                        date: todayStr(),
+                        time: new Date().toTimeString().slice(0, 5),
+                        receivedBy: 'Receptionist',
+                        reference: 'DEP-' + reservation.id,
+                        notes: 'Check-in deposit',
+                    });
+                }
+                room.status = 'occupied';
+                room.currentGuestId = guestId;
+                room.checkInDate = checkInDate;
+                room.checkOutDate = checkOutDate;
+                const guest = getGuestById(guestId);
+                if (guest) { guest.totalNights = (guest.totalNights || 0) + nights;
+                    guest.totalSpending = (guest.totalSpending || 0) + totalAmount; }
+                persistData();
+                showToast('Guest checked in successfully!');
+                navigateTo(currentView);
+            }, 'Check In');
+        }
+
+        function checkOutRoom(roomId) {
+            const room = getRoomById(roomId);
+            if (!room) return;
+            const reservation = appData.reservations.find(r => r.roomId === roomId && r.reservationStatus === 'checked_in');
+            const guest = room.currentGuestId ? getGuestById(room.currentGuestId) : null;
+            const balance = reservation ? reservation.balance : 0;
+            const content = `
+            <div class="form-group"><label>Room</label><p>ROOM ${room.roomNumber}</p></div>
+            ${guest?`<div class="form-group"><label>Guest</label><p>${guest.fullName}</p></div>`:''}
+            ${reservation?`<div class="form-row"><div class="form-group"><label>Stay</label><p>${formatDate(reservation.checkInDate)} → ${formatDate(reservation.checkOutDate)} (${reservation.nights} nights)</p></div>
+            <div class="form-group"><label>Total</label><p><strong>${formatCurrency(reservation.totalAmount)}</strong></p></div></div>
+            <div class="form-row"><div class="form-group"><label>Paid</label><p>${formatCurrency(reservation.deposit||0)}</p></div>
+            <div class="form-group"><label>Balance Due</label><p style="color:${balance>0?'#ff5c5c':'#b8ff3d'}"><strong>${formatCurrency(balance)}</strong></p></div></div>`:'<p class="text-muted">No active reservation found.</p>'}
+            <div class="form-row"><div class="form-group"><label>Final Payment</label><input type="number" id="checkoutPayment" value="${balance>0?balance:0}" step="100"></div>
+            <div class="form-group"><label>Payment Method</label><select id="checkoutMethod"><option>Cash</option><option>Bank Transfer</option><option>Mobile Payment</option><option>Card</option></select></div></div>`;
+            openModal(`Check Out — Room ${room.roomNumber}`, content, () => {
+                const finalPayment = parseInt(document.getElementById('checkoutPayment').value) || 0;
+                const method = document.getElementById('checkoutMethod').value;
+                if (reservation) {
+                    if (finalPayment > 0) {
+                        appData.payments.push({
+                            id: generateId('pay'),
+                            guestId: reservation.guestId,
+                            reservationId: reservation.id,
+                            roomId,
+                            amount: finalPayment,
+                            currency: appData.settings.currency,
+                            method,
+                            date: todayStr(),
+                            time: new Date().toTimeString().slice(0, 5),
+                            receivedBy: 'Receptionist',
+                            reference: 'CO-' + reservation.id,
+                            notes: 'Check-out payment',
+                        });
+                    }
+                    reservation.deposit = (reservation.deposit || 0) + finalPayment;
+                    reservation.balance = reservation.totalAmount - reservation.deposit;
+                    reservation.paymentStatus = reservation.balance <= 0 ? 'paid' : 'partial';
+                    reservation.reservationStatus = 'checked_out';
+                }
+                room.status = 'dirty';
+                room.currentGuestId = null;
+                room.checkInDate = null;
+                room.checkOutDate = null;
+                persistData();
+                showToast('Guest checked out. Room marked as dirty.');
+                navigateTo(currentView);
+            }, 'Complete Check-Out');
+        }
+
+        function reserveRoom(roomId) {
+            const room = getRoomById(roomId);
+            if (!room) return;
+            const content = `
+            <div class="form-group"><label>Room</label><p>ROOM ${room.roomNumber}</p></div>
+            <div class="form-group"><label>Guest</label><select id="reserveGuestId"><option value="">Select</option>${appData.guests.map(g=>`<option value="${g.id}">${g.fullName}</option>`).join('')}</select></div>
+            <div class="form-row"><div class="form-group"><label>Check-In</label><input type="date" id="reserveCheckIn" value="${todayStr()}"></div>
+            <div class="form-group"><label>Check-Out</label><input type="date" id="reserveCheckOut" value="${new Date(Date.now()+86400000*3).toISOString().split('T')[0]}"></div></div>
+            <div class="form-row"><div class="form-group"><label>Guests</label><input type="number" id="reserveGuests" value="1" min="1"></div>
+            <div class="form-group"><label>Rate/Night</label><input type="number" id="reserveRate" value="${room.currentRate}"></div></div>
+            <div class="form-group"><label>Deposit</label><input type="number" id="reserveDeposit" value="0" step="100"></div>`;
+            openModal(`Reserve Room ${room.roomNumber}`, content, () => {
+                const guestId = document.getElementById('reserveGuestId').value;
+                const checkIn = document.getElementById('reserveCheckIn').value;
+                const checkOut = document.getElementById('reserveCheckOut').value;
+                const guests = parseInt(document.getElementById('reserveGuests').value) || 1;
+                const rate = parseInt(document.getElementById('reserveRate').value) || room.currentRate;
+                const deposit = parseInt(document.getElementById('reserveDeposit').value) || 0;
+                if (!guestId) { showToast('Select a guest.', 'warning'); return false; }
+                if (!isRoomAvailable(roomId, checkIn, checkOut)) { showToast(
+                        'Room unavailable for selected dates.', 'error'); return false; }
+                const nights = Math.max(1, Math.round((new Date(checkOut) - new Date(checkIn)) / 86400000));
+                const total = nights * rate;
+                const res = {
+                    id: generateId('res'),
+                    guestId,
+                    roomId,
+                    checkInDate: checkIn,
+                    checkInTime: appData.settings.checkInTime || '14:00',
+                    checkOutDate: checkOut,
+                    guests,
+                    nights,
+                    ratePerNight: rate,
+                    discount: 0,
+                    tax: 0,
+                    totalAmount: total,
+                    deposit,
+                    balance: total - deposit,
+                    paymentStatus: deposit >= total ? 'paid' : deposit > 0 ? 'partial' : 'unpaid',
+                    reservationStatus: 'confirmed',
+                    notes: '',
+                };
+                appData.reservations.push(res);
+                if (deposit > 0) {
+                    appData.payments.push({
+                        id: generateId('pay'),
+                        guestId,
+                        reservationId: res.id,
+                        roomId,
+                        amount: deposit,
+                        currency: appData.settings.currency,
+                        method: 'Cash',
+                        date: todayStr(),
+                        time: new Date().toTimeString().slice(0, 5),
+                        receivedBy: 'Receptionist',
+                        reference: 'DEP-' + res.id,
+                        notes: 'Reservation deposit',
+                    });
+                }
+                room.status = 'reserved';
+                persistData();
+                showToast('Reservation created!');
+                navigateTo(currentView);
+            }, 'Create Reservation');
+        }
+
+        // ============ ROOMS VIEW ============
+        function renderRoomsView(searchQ) {
+            let rooms = appData.rooms;
+            if (searchQ) rooms = rooms.filter(r => r.roomNumber.includes(searchQ) || r.status.includes(searchQ) || r
+                .roomType.toLowerCase().includes(searchQ));
+            const statusCounts = {};
+            appData.rooms.forEach(r => { statusCounts[r.status] = (statusCounts[r.status] || 0) + 1; });
+            let html = `<div class="flex-between mb-2">
+            <div>${Object.entries(statusCounts).map(([s,c])=>`<span class="badge badge-${s==='available'?'green':s==='occupied'?'lime':s==='reserved'?'blue':s==='cleaning'?'yellow':s==='maintenance'?'red':'gray'} mr-1">${s.toUpperCase()}: ${c}</span>`).join(' ')}</div>
+            <button class="btn-primary btn-sm" onclick="navigateTo('checkin')">+ New Check-In</button></div>
+            <div class="room-grid">${rooms.map(r=>renderRoomCard(r)).join('')}</div>`;
+            return html;
+        }
+
+        // ============ RESERVATIONS VIEW ============
+        function renderReservationsView(searchQ) {
+            let reservations = [...appData.reservations].sort((a, b) => b.checkInDate.localeCompare(a.checkInDate));
+            if (searchQ) reservations = reservations.filter(r => r.id.includes(searchQ) || (getGuestById(r.guestId)
+                ?.fullName || '').toLowerCase().includes(searchQ) || r.reservationStatus.includes(searchQ));
+            let html =
+                `<div class="flex-between mb-2"><h3>All Reservations</h3><button class="btn-primary btn-sm" onclick="createNewReservation()">+ New Reservation</button></div>
+            <div class="table-wrap"><table><thead><tr><th>ID</th><th>Guest</th><th>Room</th><th>Check-In</th><th>Check-Out</th><th>Nights</th><th>Total</th><th>Balance</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
+            reservations.forEach(r => {
+                const guest = getGuestById(r.guestId);
+                const room = getRoomById(r.roomId);
+                html += `
+              <tr>
+                <td>${r.id}</td><td>${guest?.fullName||'Unknown'}</td><td>ROOM ${room?.roomNumber||'?'}</td>
+                <td>${formatDate(r.checkInDate)}</td><td>${formatDate(r.checkOutDate)}</td><td>${r.nights}</td>
+                <td>${formatCurrency(r.totalAmount)}</td><td style="color:${r.balance>0?'#ff5c5c':'#b8ff3d'}">${formatCurrency(r.balance)}</td>
+                <td><span class="badge badge-${r.reservationStatus==='checked_in'?'lime':r.reservationStatus==='confirmed'?'blue':r.reservationStatus==='checked_out'?'gray':r.reservationStatus==='cancelled'?'red':'yellow'}">${r.reservationStatus.toUpperCase()}</span></td>
+                <td>
+                  ${r.reservationStatus==='confirmed'?`<button class="btn-xs btn-primary" onclick="checkInReservation('${r.id}')">Check In</button>`:''}
+                  ${r.reservationStatus==='checked_in'?`<button class="btn-xs btn-danger" onclick="checkOutReservation('${r.id}')">Check Out</button>`:''}
+                  <button class="btn-xs btn-secondary" onclick="viewReservation('${r.id}')">View</button>
+                </td></tr>`;
+            });
+            html += `</tbody></table></div>`;
+            return html;
+        }
+
+        function createNewReservation() {
+            const content = `
+            <div class="form-row"><div class="form-group"><label>Check-In</label><input type="date" id="newResCheckIn" value="${todayStr()}"></div>
+            <div class="form-group"><label>Check-Out</label><input type="date" id="newResCheckOut" value="${new Date(Date.now()+86400000*3).toISOString().split('T')[0]}"></div></div>
+            <div class="form-group"><label>Guest</label><select id="newResGuest"><option value="">Select</option>${appData.guests.map(g=>`<option value="${g.id}">${g.fullName}</option>`).join('')}</select></div>
+            <div class="form-group"><label>Room</label><select id="newResRoom"><option value="">Select dates first</option></select></div>
+            <div class="form-row"><div class="form-group"><label>Guests</label><input type="number" id="newResGuests" value="1" min="1"></div>
+            <div class="form-group"><label>Deposit</label><input type="number" id="newResDeposit" value="0" step="100"></div></div>
+            <p id="newResSummary" class="text-muted"></p>`;
+            const modalBody = openModal('New Reservation', content, () => {
+                const guestId = document.getElementById('newResGuest').value;
+                const roomId = document.getElementById('newResRoom').value;
+                const checkIn = document.getElementById('newResCheckIn').value;
+                const checkOut = document.getElementById('newResCheckOut').value;
+                const guests = parseInt(document.getElementById('newResGuests').value) || 1;
+                const deposit = parseInt(document.getElementById('newResDeposit').value) || 0;
+                if (!guestId || !roomId) { showToast('Select guest and room.', 'warning'); return false; }
+                const room = getRoomById(roomId);
+                const nights = Math.max(1, Math.round((new Date(checkOut) - new Date(checkIn)) / 86400000));
+                const total = nights * (room?.currentRate || 1200);
+                const res = {
+                    id: generateId('res'),
+                    guestId,
+                    roomId,
+                    checkInDate: checkIn,
+                    checkInTime: appData.settings.checkInTime || '14:00',
+                    checkOutDate: checkOut,
+                    guests,
+                    nights,
+                    ratePerNight: room?.currentRate || 1200,
+                    discount: 0,
+                    tax: 0,
+                    totalAmount: total,
+                    deposit,
+                    balance: total - deposit,
+                    paymentStatus: deposit >= total ? 'paid' : deposit > 0 ? 'partial' : 'unpaid',
+                    reservationStatus: 'confirmed',
+                    notes: '',
+                };
+                appData.reservations.push(res);
+                if (deposit > 0) {
+                    appData.payments.push({
+                        id: generateId('pay'),
+                        guestId,
+                        reservationId: res.id,
+                        roomId,
+                        amount: deposit,
+                        currency: appData.settings.currency,
+                        method: 'Cash',
+                        date: todayStr(),
+                        time: new Date().toTimeString().slice(0, 5),
+                        receivedBy: 'Receptionist',
+                        reference: 'DEP-' + res.id,
+                        notes: 'Reservation deposit',
+                    });
+                }
+                if (room) room.status = 'reserved';
+                persistData();
+                showToast('Reservation created!');
+                navigateTo('reservations');
+            }, 'Create');
+            const updateRoomSelect = () => {
+                const ci = document.getElementById('newResCheckIn').value;
+                const co = document.getElementById('newResCheckOut').value;
+                const select = document.getElementById('newResRoom');
+                const avail = getAvailableRooms(ci, co);
+                select.innerHTML = avail.map(r =>
+                    `<option value="${r.id}">ROOM ${r.roomNumber} — ${r.roomType} (${formatCurrency(r.currentRate)})</option>`
+                ).join('') || '<option>No rooms available</option>';
+                const summary = document.getElementById('newResSummary');
+                if (avail.length > 0 && ci && co && co > ci) {
+                    const nights = Math.round((new Date(co) - new Date(ci)) / 86400000);
+                    summary.textContent =
+                        `${avail.length} room(s) available. Estimated: ${nights} night(s) × rate.`;
+                }
+            };
+            document.getElementById('newResCheckIn').addEventListener('change', updateRoomSelect);
+            document.getElementById('newResCheckOut').addEventListener('change', updateRoomSelect);
+            updateRoomSelect();
+        }
+
+        function checkInReservation(resId) {
+            const res = getReservationById(resId);
+            if (!res) return;
+            const room = getRoomById(res.roomId);
+            if (room) {
+                room.status = 'occupied';
+                room.currentGuestId = res.guestId;
+                room.checkInDate = res.checkInDate;
+                room.checkOutDate = res.checkOutDate;
+            }
+            res.reservationStatus = 'checked_in';
+            persistData();
+            showToast('Reservation checked in.');
+            navigateTo('reservations');
+        }
+
+        function checkOutReservation(resId) {
+            const res = getReservationById(resId);
+            if (!res) return;
+            const room = getRoomById(res.roomId);
+            if (room) { room.status = 'dirty';
+                room.currentGuestId = null;
+                room.checkInDate = null;
+                room.checkOutDate = null; }
+            res.reservationStatus = 'checked_out';
+            persistData();
+            showToast('Reservation checked out. Room marked dirty.');
+            navigateTo('reservations');
+        }
+
+        function viewReservation(resId) {
+            const res = getReservationById(resId);
+            if (!res) return;
+            const guest = getGuestById(res.guestId);
+            const room = getRoomById(res.roomId);
+            const content = `
+            <div class="form-row"><div class="form-group"><label>Reservation ID</label><p><strong>${res.id}</strong></p></div>
+            <div class="form-group"><label>Status</label><p><span class="badge badge-${res.reservationStatus==='checked_in'?'lime':'blue'}">${res.reservationStatus.toUpperCase()}</span></p></div></div>
+            <div class="form-row"><div class="form-group"><label>Guest</label><p>${guest?.fullName||'Unknown'}</p></div>
+            <div class="form-group"><label>Room</label><p>ROOM ${room?.roomNumber||'?'}</p></div></div>
+            <div class="form-row"><div class="form-group"><label>Check-In</label><p>${formatDate(res.checkInDate)}</p></div>
+            <div class="form-group"><label>Check-Out</label><p>${formatDate(res.checkOutDate)}</p></div></div>
+            <div class="form-row"><div class="form-group"><label>Total</label><p><strong>${formatCurrency(res.totalAmount)}</strong></p></div>
+            <div class="form-group"><label>Balance</label><p style="color:${res.balance>0?'#ff5c5c':'#b8ff3d'}"><strong>${formatCurrency(res.balance)}</strong></p></div></div>`;
+            openModal(`Reservation ${res.id}`, content, null);
+        }
+
+        // ============ CALENDAR VIEW ============
+        function renderCalendarView() {
+            const today = new Date();
+            const month = today.getMonth();
+            const year = today.getFullYear();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const firstDay = new Date(year, month, 1).getDay();
+            let html =
+                `<div class="card mb-2"><h3>${today.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</h3>
+            <div class="calendar-header"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;">`;
+            for (let i = 0; i < firstDay; i++) html += '<div></div>';
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr =
+                    `${year}-${(month+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`;
+                const isToday = dateStr === todayStr();
+                const hasActivity = appData.reservations.some(r => r.checkInDate === dateStr || r.checkOutDate ===
+                    dateStr);
+                html +=
+                    `<div class="calendar-day${isToday?' selected':''}" style="${hasActivity?'font-weight:700;color:var(--accent)':''}" onclick="showDayReservations('${dateStr}')">${d}</div>`;
+            }
+            html += `</div></div>
+            <div class="card"><div class="card-header">Room Calendar — Next 7 Days</div><div class="table-wrap"><table><thead><tr><th>Room</th>${Array.from({length:7},(_,i)=>{const d=new Date();d.setDate(d.getDate()+i);return`<th>${d.toLocaleDateString('en-US',{weekday:'short',day:'numeric'})}</th>`}).join('')}</tr></thead><tbody>`;
+            appData.rooms.forEach(room => {
+                html += `<tr><td><strong>ROOM ${room.roomNumber}</strong></td>`;
+                for (let i = 0; i < 7; i++) {
+                    const d = new Date();
+                    d.setDate(d.getDate() + i);
+                    const ds = d.toISOString().split('T')[0];
+                    const res = appData.reservations.find(r => r.roomId === room.id && r.checkInDate <= ds && r
+                        .checkOutDate > ds && !['cancelled', 'no_show'].includes(r.reservationStatus));
+                    const bg = res ? (res.reservationStatus === 'checked_in' ? '#1a3a1a' : '#1a2a3a') : 'transparent';
+                    const label = res ? (res.reservationStatus === 'checked_in' ? 'OCC' : 'RES') : '';
+                    html +=
+                        `<td style="background:${bg};text-align:center;font-size:0.7rem;padding:4px;">${label}</td>`;
+                }
+                html += `</tr>`;
+            });
+            html += `</tbody></table></div></div>`;
+            return html;
+        }
+
+        function showDayReservations(dateStr) {
+            const reses = appData.reservations.filter(r => r.checkInDate === dateStr || r.checkOutDate === dateStr);
+            const content = `<h4>${formatDate(dateStr)}</h4>
+            ${reses.length===0?'<p class="text-muted">No reservations for this date.</p>':reses.map(r=>`<p>${r.id} — ${getGuestById(r.guestId)?.fullName||'?'} — Room ${getRoomById(r.roomId)?.roomNumber||'?'} — ${r.reservationStatus.toUpperCase()}</p>`).join('')}`;
+            openModal(`Reservations — ${formatDate(dateStr)}`, content, null);
+        }
+
+        // ============ GUESTS VIEW ============
+        function renderGuestsView(searchQ) {
+            let guests = appData.guests;
+            if (searchQ) guests = guests.filter(g => g.fullName.toLowerCase().includes(searchQ) || g.phone.includes(
+                searchQ) || g.email.toLowerCase().includes(searchQ));
+            let html =
+                `<div class="flex-between mb-2"><h3>Guest Database</h3><button class="btn-primary btn-sm" onclick="addNewGuest()">+ Add Guest</button></div>
+            <div class="table-wrap"><table><thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>City</th><th>Total Nights</th><th>Total Spending</th><th>Actions</th></tr></thead><tbody>`;
+            guests.forEach(g => {
+                html += `
+              <tr><td>${g.fullName}</td><td>${g.phone}</td><td>${g.email}</td><td>${g.city||'—'}</td>
+              <td>${g.totalNights||0}</td><td>${formatCurrency(g.totalSpending||0)}</td>
+              <td><button class="btn-xs btn-secondary" onclick="viewGuest('${g.id}')">View</button></td></tr>`;
+            });
+            html += `</tbody></table></div>`;
+            return html;
+        }
+
+        function addNewGuest() {
+            const content = `
+            <div class="form-row"><div class="form-group"><label>Full Name</label><input type="text" id="newGuestName"></div>
+            <div class="form-group"><label>Phone</label><input type="text" id="newGuestPhone"></div></div>
+            <div class="form-row"><div class="form-group"><label>Email</label><input type="email" id="newGuestEmail"></div>
+            <div class="form-group"><label>City</label><input type="text" id="newGuestCity"></div></div>
+            <div class="form-row"><div class="form-group"><label>ID Type</label><select id="newGuestIdType"><option>Passport</option><option>National ID</option><option>Driver's License</option></select></div>
+            <div class="form-group"><label>ID Number</label><input type="text" id="newGuestIdNumber"></div></div>`;
+            openModal('Add Guest', content, () => {
+                const guest = {
+                    id: generateId('guest-demo'),
+                    fullName: document.getElementById('newGuestName').value,
+                    phone: document.getElementById('newGuestPhone').value,
+                    email: document.getElementById('newGuestEmail').value,
+                    city: document.getElementById('newGuestCity').value,
+                    country: 'Ethiopia',
+                    idType: document.getElementById('newGuestIdType').value,
+                    idNumber: document.getElementById('newGuestIdNumber').value,
+                    notes: '',
+                    totalNights: 0,
+                    totalSpending: 0,
+                };
+                if (!guest.fullName || !guest.phone) { showToast('Name and phone required.', 'warning'); return false; }
+                appData.guests.push(guest);
+                persistData();
+                showToast('Guest added.');
+                navigateTo('guests');
+            }, 'Add Guest');
+        }
+
+        function viewGuest(guestId) {
+            const g = getGuestById(guestId);
+            if (!g) return;
+            const reservations = appData.reservations.filter(r => r.guestId === guestId);
+            const content = `
+            <div class="form-row"><div class="form-group"><label>Name</label><p><strong>${g.fullName}</strong></p></div>
+            <div class="form-group"><label>Contact</label><p>${g.phone} | ${g.email}</p></div></div>
+            <div class="form-row"><div class="form-group"><label>City</label><p>${g.city||'—'}</p></div>
+            <div class="form-group"><label>ID</label><p>${g.idType}: ${g.idNumber}</p></div></div>
+            <div class="form-row"><div class="form-group"><label>Total Nights</label><p>${g.totalNights||0}</p></div>
+            <div class="form-group"><label>Total Spending</label><p>${formatCurrency(g.totalSpending||0)}</p></div></div>
+            <h4 class="mt-1">Reservations</h4>
+            ${reservations.map(r=>`<p>${r.id} — Room ${getRoomById(r.roomId)?.roomNumber||'?'} — ${formatDate(r.checkInDate)} → ${formatDate(r.checkOutDate)} — ${r.reservationStatus.toUpperCase()}</p>`).join('')||'<p class="text-muted">No reservations.</p>'}`;
+            openModal(`Guest: ${g.fullName}`, content, null);
+        }
+
+        // ============ CHECK-IN/OUT VIEW ============
+        function renderCheckInOutView() {
+            const today = todayStr();
+            const arrivals = appData.reservations.filter(r => r.checkInDate === today && r.reservationStatus ===
+                'confirmed');
+            const departures = appData.reservations.filter(r => r.checkOutDate === today && r.reservationStatus ===
+                'checked_in');
+            let html = `<div class="form-row mb-2">
+            <div class="card"><div class="card-header">Today's Arrivals (${arrivals.length})</div>
+            ${arrivals.map(r=>`<p>${r.id} — ${getGuestById(r.guestId)?.fullName||'?'} — Room ${getRoomById(r.roomId)?.roomNumber||'?'} <button class="btn-xs btn-primary" onclick="checkInReservation('${r.id}')">Check In Now</button></p>`).join('')||'<p class="text-muted">No arrivals today.</p>'}</div>
+            <div class="card"><div class="card-header">Today's Departures (${departures.length})</div>
+            ${departures.map(r=>`<p>${r.id} — ${getGuestById(r.guestId)?.fullName||'?'} — Room ${getRoomById(r.roomId)?.roomNumber||'?'} <button class="btn-xs btn-danger" onclick="checkOutReservation('${r.id}')">Check Out Now</button></p>`).join('')||'<p class="text-muted">No departures today.</p>'}</div></div>
+            <div class="flex-between"><button class="btn-primary" onclick="walkInCheckIn()">🚶 Walk-In Check-In</button>
+            <button class="btn-secondary" onclick="navigateTo('reservations')">View All Reservations</button></div>`;
+            return html;
+        }
+
+        function walkInCheckIn() {
+            const avail = getAvailableRooms(todayStr(), new Date(Date.now() + 86400000 * 7).toISOString().split('T')[0]);
+            const content = `
+            <div class="form-group"><label>Guest</label><select id="walkinGuest"><option value="">Select</option>${appData.guests.map(g=>`<option value="${g.id}">${g.fullName}</option>`).join('')}</select></div>
+            <div class="form-group"><label>Available Rooms</label><select id="walkinRoom">${avail.map(r=>`<option value="${r.id}">ROOM ${r.roomNumber} — ${r.roomType} (${formatCurrency(r.currentRate)})</option>`).join('')}</select></div>
+            <div class="form-row"><div class="form-group"><label>Check-Out Date</label><input type="date" id="walkinCheckOut" value="${new Date(Date.now()+86400000*2).toISOString().split('T')[0]}"></div>
+            <div class="form-group"><label>Deposit</label><input type="number" id="walkinDeposit" value="0" step="100"></div></div>`;
+            openModal('Walk-In Check-In', content, () => {
+                const guestId = document.getElementById('walkinGuest').value;
+                const roomId = document.getElementById('walkinRoom').value;
+                const checkOut = document.getElementById('walkinCheckOut').value;
+                const deposit = parseInt(document.getElementById('walkinDeposit').value) || 0;
+                if (!guestId || !roomId) { showToast('Select guest and room.', 'warning'); return false; }
+                const room = getRoomById(roomId);
+                const nights = Math.max(1, Math.round((new Date(checkOut) - new Date()) / 86400000));
+                const total = nights * (room?.currentRate || 1200);
+                const res = {
+                    id: generateId('res'),
+                    guestId,
+                    roomId,
+                    checkInDate: todayStr(),
+                    checkInTime: new Date().toTimeString().slice(0, 5),
+                    checkOutDate: checkOut,
+                    guests: 1,
+                    nights,
+                    ratePerNight: room?.currentRate || 1200,
+                    discount: 0,
+                    tax: 0,
+                    totalAmount: total,
+                    deposit,
+                    balance: total - deposit,
+                    paymentStatus: deposit >= total ? 'paid' : deposit > 0 ? 'partial' : 'unpaid',
+                    reservationStatus: 'checked_in',
+                    notes: 'Walk-in',
+                };
+                appData.reservations.push(res);
+                if (deposit > 0) {
+                    appData.payments.push({
+                        id: generateId('pay'),
+                        guestId,
+                        reservationId: res.id,
+                        roomId,
+                        amount: deposit,
+                        currency: appData.settings.currency,
+                        method: 'Cash',
+                        date: todayStr(),
+                        time: new Date().toTimeString().slice(0, 5),
+                        receivedBy: 'Receptionist',
+                        reference: 'WALK-' + res.id,
+                        notes: 'Walk-in deposit',
+                    });
+                }
+                if (room) { room.status = 'occupied';
+                    room.currentGuestId = guestId;
+                    room.checkInDate = todayStr();
+                    room.checkOutDate = checkOut; }
+                persistData();
+                showToast('Walk-in guest checked in!');
+                navigateTo('checkin');
+            }, 'Check In');
+        }
+
+        // ============ PAYMENTS VIEW ============
+        function renderPaymentsView() {
+            let html =
+                `<div class="flex-between mb-2"><h3>Payments</h3><button class="btn-primary btn-sm" onclick="recordPayment()">+ Record Payment</button></div>
+            <div class="table-wrap"><table><thead><tr><th>ID</th><th>Guest</th><th>Reservation</th><th>Amount</th><th>Method</th><th>Date</th><th>Received By</th></tr></thead><tbody>`;
+            [...appData.payments].reverse().forEach(p => {
+                html +=
+                    `<tr><td>${p.id}</td><td>${getGuestById(p.guestId)?.fullName||'?'}</td><td>${p.reservationId}</td><td>${formatCurrency(p.amount)}</td><td>${p.method}</td><td>${p.date}</td><td>${p.receivedBy}</td></tr>`;
+            });
+            html += `</tbody></table></div>`;
+            return html;
+        }
+
+        function recordPayment() {
+            const content = `
+            <div class="form-group"><label>Reservation</label><select id="payResId"><option value="">Select</option>${appData.reservations.filter(r=>['checked_in','confirmed'].includes(r.reservationStatus)).map(r=>`<option value="${r.id}">${r.id} — ${getGuestById(r.guestId)?.fullName||'?'} — Balance: ${formatCurrency(r.balance)}</option>`).join('')}</select></div>
+            <div class="form-row"><div class="form-group"><label>Amount</label><input type="number" id="payAmount" step="100"></div>
+            <div class="form-group"><label>Method</label><select id="payMethod"><option>Cash</option><option>Bank Transfer</option><option>Mobile Payment</option><option>Card</option></select></div></div>
+            <div class="form-group"><label>Reference</label><input type="text" id="payRef" placeholder="Optional"></div>`;
+            openModal('Record Payment', content, () => {
+                const resId = document.getElementById('payResId').value;
+                const amount = parseInt(document.getElementById('payAmount').value) || 0;
+                const method = document.getElementById('payMethod').value;
+                const ref = document.getElementById('payRef').value;
+                if (!resId || amount <= 0) { showToast('Select reservation and enter amount.',
+                'warning'); return false; }
+                const res = getReservationById(resId);
+                if (!res) return false;
+                const payment = {
+                    id: generateId('pay'),
+                    guestId: res.guestId,
+                    reservationId: resId,
+                    roomId: res.roomId,
+                    amount,
+                    currency: appData.settings.currency,
+                    method,
+                    date: todayStr(),
+                    time: new Date().toTimeString().slice(0, 5),
+                    receivedBy: 'Receptionist',
+                    reference: ref || ('PAY-' + resId),
+                    notes: '',
+                };
+                appData.payments.push(payment);
+                res.deposit = (res.deposit || 0) + amount;
+                res.balance = res.totalAmount - res.deposit;
+                res.paymentStatus = res.balance <= 0 ? 'paid' : res.deposit > 0 ? 'partial' : 'unpaid';
+                persistData();
+                showToast(`Payment of ${formatCurrency(amount)} recorded.`);
+                navigateTo('payments');
+            }, 'Record');
+        }
+
+        // ============ HOUSEKEEPING VIEW ============
+        function renderHousekeepingView() {
+            const dirty = appData.rooms.filter(r => r.status === 'dirty');
+            const cleaning = appData.rooms.filter(r => r.status === 'cleaning');
+            const ready = appData.rooms.filter(r => r.status === 'available' && r.housekeepingStatus === 'ready');
+            let html = `<div class="stats-grid mb-2">
+            <div class="stat-card"><div class="stat-label">Dirty</div><div class="stat-value" style="color:#ff5c5c">${dirty.length}</div></div>
+            <div class="stat-card"><div class="stat-label">Cleaning</div><div class="stat-value" style="color:#f5c84c">${cleaning.length}</div></div>
+            <div class="stat-card"><div class="stat-label">Ready</div><div class="stat-value" style="color:#6ee889">${ready.length}</div></div></div>
+            <h4>Housekeeping Tasks</h4>
+            <div class="table-wrap"><table><thead><tr><th>Task ID</th><th>Room</th><th>Staff</th><th>Status</th><th>Priority</th><th>Actions</th></tr></thead><tbody>`;
+            appData.housekeepingTasks.forEach(t => {
+                html +=
+                    `<tr><td>${t.id}</td><td>ROOM ${getRoomById(t.roomId)?.roomNumber||'?'}</td><td>${t.assignedStaff}</td><td><span class="badge badge-${t.status==='completed'?'green':t.status==='in_progress'?'yellow':'blue'}">${t.status.replace('_',' ').toUpperCase()}</span></td><td>${t.priority}</td>
+            <td>${t.status==='pending'?`<button class="btn-xs btn-primary" onclick="startHKTask('${t.id}')">Start</button>`:''}${t.status==='in_progress'?`<button class="btn-xs btn-primary" onclick="completeHKTask('${t.id}')">Complete</button>`:''}</td></tr>`;
+            });
+            html += `</tbody></table></div>
+            <button class="btn-primary btn-sm mt-1" onclick="createHKTask()">+ Create Task</button>`;
+            return html;
+        }
+
+        function createHKTask() {
+            const content = `
+            <div class="form-group"><label>Room</label><select id="hkRoomId">${appData.rooms.filter(r=>['dirty','cleaning','available'].includes(r.status)).map(r=>`<option value="${r.id}">ROOM ${r.roomNumber} (${r.status})</option>`).join('')}</select></div>
+            <div class="form-row"><div class="form-group"><label>Staff</label><select id="hkStaff">${appData.staff.filter(s=>s.role==='Housekeeping').map(s=>`<option>${s.name}</option>`).join('')}</select></div>
+            <div class="form-group"><label>Priority</label><select id="hkPriority"><option>Normal</option><option>High</option><option>Urgent</option></select></div></div>`;
+            openModal('Create Housekeeping Task', content, () => {
+                const task = {
+                    id: generateId('hk'),
+                    roomId: document.getElementById('hkRoomId').value,
+                    assignedStaff: document.getElementById('hkStaff').value,
+                    taskType: 'Full Clean',
+                    priority: document.getElementById('hkPriority').value,
+                    createdTime: new Date().toISOString().slice(0, 16).replace('T', ' '),
+                    startedTime: null,
+                    completedTime: null,
+                    notes: '',
+                    status: 'pending',
+                };
+                appData.housekeepingTasks.push(task);
+                const room = getRoomById(task.roomId);
+                if (room && room.status === 'dirty') room.status = 'cleaning';
+                persistData();
+                showToast('Task created.');
+                navigateTo('housekeeping');
+            }, 'Create');
+        }
+
+        function startHKTask(taskId) {
+            const task = appData.housekeepingTasks.find(t => t.id === taskId);
+            if (task) { task.status = 'in_progress';
+                task.startedTime = new Date().toISOString().slice(0, 16).replace('T', ' ');
+                const room = getRoomById(task.roomId); if (room) room.status = 'cleaning';
+                persistData();
+                showToast('Task started.');
+                navigateTo('housekeeping'); }
+        }
+
+        function completeHKTask(taskId) {
+            const task = appData.housekeepingTasks.find(t => t.id === taskId);
+            if (task) { task.status = 'completed';
+                task.completedTime = new Date().toISOString().slice(0, 16).replace('T', ' ');
+                const room = getRoomById(task.roomId); if (room) { room.status = 'available';
+                    room.housekeepingStatus = 'ready'; }
+                persistData();
+                showToast('Task completed. Room ready.');
+                navigateTo('housekeeping'); }
+        }
+
+        // ============ MAINTENANCE VIEW ============
+        function renderMaintenanceView() {
+            let html = `<div class="flex-between mb-2"><h3>Maintenance Requests</h3><button class="btn-primary btn-sm" onclick="openMaintenanceForm()">+ New Request</button></div>
+            <div class="table-wrap"><table><thead><tr><th>ID</th><th>Room</th><th>Problem</th><th>Category</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
+            appData.maintenanceRequests.forEach(m => {
+                html +=
+                    `<tr><td>${m.id}</td><td>ROOM ${getRoomById(m.roomId)?.roomNumber||'?'}</td><td>${m.problem}</td><td>${m.category}</td><td>${m.priority}</td><td><span class="badge badge-${m.status==='resolved'||m.status==='closed'?'green':m.status==='in_progress'?'yellow':'red'}">${m.status.replace('_',' ').toUpperCase()}</span></td>
+            <td>${m.status==='reported'?`<button class="btn-xs btn-primary" onclick="assignMaint('${m.id}')">Assign</button>`:''}${m.status==='in_progress'?`<button class="btn-xs btn-primary" onclick="resolveMaint('${m.id}')">Resolve</button>`:''}</td></tr>`;
+            });
+            html += `</tbody></table></div>`;
+            return html;
+        }
+
+        function openMaintenanceForm() {
+            const content = `
+            <div class="form-group"><label>Room</label><select id="maintRoomId">${appData.rooms.map(r=>`<option value="${r.id}">ROOM ${r.roomNumber} (${r.status})</option>`).join('')}</select></div>
+            <div class="form-group"><label>Problem</label><input type="text" id="maintProblem2"></div>
+            <div class="form-row"><div class="form-group"><label>Category</label><select id="maintCat2">${['Plumbing','Electrical','Air Conditioning','Furniture','Bathroom','Lighting','Internet','Other'].map(c=>`<option>${c}</option>`).join('')}</select></div>
+            <div class="form-group"><label>Priority</label><select id="maintPrio2"><option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option></select></div></div>`;
+            openModal('New Maintenance Request', content, () => {
+                const m = {
+                    id: generateId('maint'),
+                    roomId: document.getElementById('maintRoomId').value,
+                    problem: document.getElementById('maintProblem2').value,
+                    category: document.getElementById('maintCat2').value,
+                    priority: document.getElementById('maintPrio2').value,
+                    reportedBy: 'Staff',
+                    date: todayStr(),
+                    assignedTechnician: null,
+                    status: 'reported',
+                    estimatedCost: 0,
+                    actualCost: 0,
+                    resolution: '',
+                    completionDate: null,
+                };
+                appData.maintenanceRequests.push(m);
+                const room = getRoomById(m.roomId);
+                if (room) room.status = 'maintenance';
+                persistData();
+                showToast('Maintenance request created.');
+                navigateTo('maintenance');
+            }, 'Create');
+        }
+
+        function assignMaint(maintId) {
+            const m = appData.maintenanceRequests.find(mr => mr.id === maintId);
+            if (m) { m.status = 'in_progress';
+                m.assignedTechnician = 'Tech 1';
+                persistData();
+                showToast('Maintenance assigned.');
+                navigateTo('maintenance'); }
+        }
+
+        function resolveMaint(maintId) {
+            const m = appData.maintenanceRequests.find(mr => mr.id === maintId);
+            if (m) { m.status = 'resolved';
+                m.completionDate = todayStr();
+                const room = getRoomById(m.roomId); if (room && room.status === 'maintenance') room.status =
+                    'inspection';
+                persistData();
+                showToast('Maintenance resolved. Room needs inspection.');
+                navigateTo('maintenance'); }
+        }
+
+        // ============ INVENTORY VIEW ============
+        function renderInventoryView() {
+            let html =
+                `<div class="flex-between mb-2"><h3>Inventory</h3><button class="btn-primary btn-sm" onclick="addInventoryItem()">+ Add Item</button></div>
+            <div class="table-wrap"><table><thead><tr><th>Item</th><th>Category</th><th>Qty</th><th>Min</th><th>Status</th><th>Supplier</th><th>Unit Cost</th></tr></thead><tbody>`;
+            appData.inventoryItems.forEach(i => {
+                const statusBadge = i.status === 'critical' ? 'badge-red' : i.status === 'low' ? 'badge-yellow' :
+                    'badge-green';
+                html +=
+                    `<tr><td>${i.item}</td><td>${i.category}</td><td>${i.currentQty} ${i.unit}</td><td>${i.minQty}</td><td><span class="badge ${statusBadge}">${i.status.toUpperCase()}</span></td><td>${i.supplier}</td><td>${formatCurrency(i.unitCost)}</td></tr>`;
+            });
+            html += `</tbody></table></div>`;
+            return html;
+        }
+
+        function addInventoryItem() {
+            const content = `
+            <div class="form-row"><div class="form-group"><label>Item Name</label><input type="text" id="invName"></div>
+            <div class="form-group"><label>Category</label><select id="invCat"><option>Cleaning supplies</option><option>Toiletries</option><option>Linens</option><option>Towels</option><option>Food</option><option>Beverages</option><option>Office supplies</option><option>Maintenance materials</option><option>Other</option></select></div></div>
+            <div class="form-row"><div class="form-group"><label>Current Qty</label><input type="number" id="invQty" value="0"></div>
+            <div class="form-group"><label>Unit</label><input type="text" id="invUnit" value="pieces"></div></div>
+            <div class="form-row"><div class="form-group"><label>Min Qty</label><input type="number" id="invMin" value="10"></div>
+            <div class="form-group"><label>Reorder Level</label><input type="number" id="invReorder" value="20"></div></div>
+            <div class="form-row"><div class="form-group"><label>Supplier</label><input type="text" id="invSupplier"></div>
+            <div class="form-group"><label>Unit Cost</label><input type="number" id="invCost" value="0"></div></div>`;
+            openModal('Add Inventory Item', content, () => {
+                const qty = parseInt(document.getElementById('invQty').value) || 0;
+                const minQty = parseInt(document.getElementById('invMin').value) || 10;
+                const item = {
+                    id: generateId('inv'),
+                    item: document.getElementById('invName').value,
+                    category: document.getElementById('invCat').value,
+                    unit: document.getElementById('invUnit').value,
+                    currentQty: qty,
+                    minQty,
+                    reorderLevel: parseInt(document.getElementById('invReorder').value) || 20,
+                    supplier: document.getElementById('invSupplier').value,
+                    unitCost: parseInt(document.getElementById('invCost').value) || 0,
+                    lastUpdated: todayStr(),
+                    status: qty <= 0 ? 'critical' : qty < minQty ? 'low' : 'ok',
+                };
+                if (!item.item) { showToast('Item name required.', 'warning'); return false; }
+                appData.inventoryItems.push(item);
+                persistData();
+                showToast('Item added.');
+                navigateTo('inventory');
+            }, 'Add');
+        }
+
+        // ============ EXPENSES VIEW ============
+        function renderExpensesView() {
+            let html =
+                `<div class="flex-between mb-2"><h3>Expenses</h3><button class="btn-primary btn-sm" onclick="addExpense()">+ Record Expense</button></div>
+            <div class="table-wrap"><table><thead><tr><th>ID</th><th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th>Supplier</th></tr></thead><tbody>`;
+            [...appData.expenses].reverse().forEach(e => {
+                html +=
+                    `<tr><td>${e.id}</td><td>${e.date}</td><td>${e.category}</td><td>${e.description}</td><td>${formatCurrency(e.amount)}</td><td>${e.supplier||'—'}</td></tr>`;
+            });
+            html += `</tbody></table></div>`;
+            return html;
+        }
+
+        function addExpense() {
+            const content = `
+            <div class="form-row"><div class="form-group"><label>Date</label><input type="date" id="expDate" value="${todayStr()}"></div>
+            <div class="form-group"><label>Category</label><select id="expCat"><option>Utilities</option><option>Maintenance</option><option>Cleaning</option><option>Supplies</option><option>Food</option><option>Staff</option><option>Transport</option><option>Marketing</option><option>Rent</option><option>Taxes</option><option>Other</option></select></div></div>
+            <div class="form-group"><label>Description</label><input type="text" id="expDesc"></div>
+            <div class="form-row"><div class="form-group"><label>Amount</label><input type="number" id="expAmount" step="100"></div>
+            <div class="form-group"><label>Supplier</label><input type="text" id="expSupplier"></div></div>`;
+            openModal('Record Expense', content, () => {
+                const exp = {
+                    id: generateId('exp'),
+                    date: document.getElementById('expDate').value,
+                    category: document.getElementById('expCat').value,
+                    description: document.getElementById('expDesc').value,
+                    amount: parseInt(document.getElementById('expAmount').value) || 0,
+                    method: 'Cash',
+                    supplier: document.getElementById('expSupplier').value,
+                    department: 'General',
+                    recordedBy: 'Manager',
+                    notes: '',
+                };
+                if (!exp.description || exp.amount <= 0) { showToast('Description and amount required.',
+                    'warning'); return false; }
+                appData.expenses.push(exp);
+                persistData();
+                showToast('Expense recorded.');
+                navigateTo('expenses');
+            }, 'Record');
+        }
+
+        // ============ REVENUE VIEW ============
+        function renderRevenueView() {
+            const today = todayStr();
+            const todayRev = appData.payments.filter(p => p.date === today).reduce((s, p) => s + p.amount, 0);
+            const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
+            const weekRev = appData.payments.filter(p => p.date >= weekAgo).reduce((s, p) => s + p.amount, 0);
+            const totalRev = appData.payments.reduce((s, p) => s + p.amount, 0);
+            const totalExp = appData.expenses.reduce((s, e) => s + e.amount, 0);
+            const netResult = totalRev - totalExp;
+            let html = `<div class="stats-grid mb-2">
+            <div class="stat-card"><div class="stat-label">Today's Revenue</div><div class="stat-value">${formatCurrency(todayRev)}</div></div>
+            <div class="stat-card"><div class="stat-label">Weekly Revenue</div><div class="stat-value">${formatCurrency(weekRev)}</div></div>
+            <div class="stat-card"><div class="stat-label">Total Revenue</div><div class="stat-value">${formatCurrency(totalRev)}</div></div>
+            <div class="stat-card"><div class="stat-label">Total Expenses</div><div class="stat-value" style="color:#ff5c5c">${formatCurrency(totalExp)}</div></div>
+            <div class="stat-card"><div class="stat-label">Net Result</div><div class="stat-value" style="color:${netResult>=0?'#b8ff3d':'#ff5c5c'}">${formatCurrency(netResult)}</div></div></div>
+            <p class="text-muted">⚠️ Revenue ≠ Profit. Net result = Total Revenue − Total Expenses.</p>`;
+            return html;
+        }
+
+        // ============ REPORTS VIEW ============
+        function renderReportsView() {
+            const today = todayStr();
+            const occupied = appData.rooms.filter(r => r.status === 'occupied').length;
+            const available = appData.rooms.filter(r => r.status === 'available').length;
+            const reserved = appData.rooms.filter(r => r.status === 'reserved').length;
+            const cleaning = appData.rooms.filter(r => r.status === 'cleaning').length;
+            const maintenance = appData.rooms.filter(r => r.status === 'maintenance').length;
+            const todayCheckIns = appData.reservations.filter(r => r.checkInDate === today && r.reservationStatus ===
+                'checked_in').length;
+            const todayCheckOuts = appData.reservations.filter(r => r.checkOutDate === today && r.reservationStatus ===
+                'checked_in').length;
+            const todayRev = appData.payments.filter(p => p.date === today).reduce((s, p) => s + p.amount, 0);
+            const occupancyRate = Math.round((occupied / 30) * 100);
+            const totalExp = appData.expenses.filter(e => e.date === today).reduce((s, e) => s + e.amount, 0);
+            let html = `<div class="card"><div class="card-header">Daily Operations Report — ${formatDate(today)}</div>
+            <div class="form-row span-3 mb-1"><div><strong>Total Rooms:</strong> 30</div><div><strong>Occupied:</strong> ${occupied}</div><div><strong>Available:</strong> ${available}</div></div>
+            <div class="form-row span-3 mb-1"><div><strong>Reserved:</strong> ${reserved}</div><div><strong>Cleaning:</strong> ${cleaning}</div><div><strong>Maintenance:</strong> ${maintenance}</div></div>
+            <div class="form-row span-3 mb-1"><div><strong>Check-Ins:</strong> ${todayCheckIns}</div><div><strong>Check-Outs:</strong> ${todayCheckOuts}</div><div><strong>Occupancy:</strong> ${occupancyRate}%</div></div>
+            <div class="form-row span-3 mb-1"><div><strong>Room Revenue:</strong> ${formatCurrency(todayRev)}</div><div><strong>Expenses:</strong> ${formatCurrency(totalExp)}</div><div><strong>Net:</strong> ${formatCurrency(todayRev-totalExp)}</div></div>
+            </div>
+            <button class="btn-secondary btn-sm mt-1" onclick="exportCSV()">📥 Export CSV</button>`;
+            return html;
+        }
+
+        function exportCSV() {
+            let csv = 'Type,ID,Date,Amount,Status\n';
+            appData.payments.forEach(p => { csv +=
+                    `Payment,${p.id},${p.date},${p.amount},${p.method}\n`; });
+            appData.expenses.forEach(e => { csv +=
+            `Expense,${e.id},${e.date},${e.amount},${e.category}\n`; });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'amud_motel_report.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('CSV exported.');
+        }
+
+        // ============ COMPLAINTS VIEW ============
+        function renderComplaintsView() {
+            let html =
+                `<div class="flex-between mb-2"><h3>Customer Complaints</h3><button class="btn-primary btn-sm" onclick="addComplaint()">+ New Complaint</button></div>
+            <div class="table-wrap"><table><thead><tr><th>ID</th><th>Guest</th><th>Room</th><th>Category</th><th>Status</th><th>Date</th></tr></thead><tbody>`;
+            appData.complaints.forEach(c => {
+                html +=
+                    `<tr><td>${c.id}</td><td>${getGuestById(c.guestId)?.fullName||'?'}</td><td>ROOM ${getRoomById(c.roomId)?.roomNumber||'?'}</td><td>${c.category}</td><td><span class="badge badge-${c.status==='resolved'||c.status==='closed'?'green':'yellow'}">${c.status.toUpperCase()}</span></td><td>${c.date}</td></tr>`;
+            });
+            html += `</tbody></table></div>`;
+            return html;
+        }
+
+        function addComplaint() {
+            const content = `
+            <div class="form-group"><label>Guest</label><select id="compGuest">${appData.guests.map(g=>`<option value="${g.id}">${g.fullName}</option>`).join('')}</select></div>
+            <div class="form-group"><label>Room</label><select id="compRoom">${appData.rooms.map(r=>`<option value="${r.id}">ROOM ${r.roomNumber}</option>`).join('')}</select></div>
+            <div class="form-row"><div class="form-group"><label>Category</label><select id="compCat"><option>Cleanliness</option><option>Noise</option><option>Room</option><option>Service</option><option>Food</option><option>Payment</option><option>Internet</option><option>Maintenance</option><option>Staff</option><option>Other</option></select></div>
+            <div class="form-group"><label>Priority</label><select id="compPrio"><option>Low</option><option selected>Medium</option><option>High</option></select></div></div>
+            <div class="form-group"><label>Description</label><textarea id="compDesc" rows="2"></textarea></div>`;
+            openModal('New Complaint', content, () => {
+                const c = {
+                    id: generateId('comp'),
+                    guestId: document.getElementById('compGuest').value,
+                    roomId: document.getElementById('compRoom').value,
+                    date: todayStr(),
+                    category: document.getElementById('compCat').value,
+                    description: document.getElementById('compDesc').value,
+                    priority: document.getElementById('compPrio').value,
+                    assignedStaff: null,
+                    response: '',
+                    resolution: '',
+                    status: 'open',
+                };
+                appData.complaints.push(c);
+                persistData();
+                showToast('Complaint recorded.');
+                navigateTo('complaints');
+            }, 'Submit');
+        }
+
+        // ============ STAFF VIEW ============
+        function renderStaffView() {
+            let html =
+                `<div class="flex-between mb-2"><h3>Staff Registry</h3><button class="btn-primary btn-sm" onclick="addStaff()">+ Add Staff</button></div>
+            <div class="table-wrap"><table><thead><tr><th>Name</th><th>Role</th><th>Department</th><th>Phone</th><th>Status</th><th>Shift</th></tr></thead><tbody>`;
+            appData.staff.forEach(s => {
+                html +=
+                    `<tr><td>${s.name}</td><td>${s.role}</td><td>${s.department}</td><td>${s.phone}</td><td>${s.status}</td><td>${s.shift||'—'}</td></tr>`;
+            });
+            html += `</tbody></table></div>`;
+            return html;
+        }
+
+        function addStaff() {
+            const content = `
+            <div class="form-row"><div class="form-group"><label>Name</label><input type="text" id="staffName"></div>
+            <div class="form-group"><label>Role</label><select id="staffRole"><option>Manager</option><option>Receptionist</option><option>Housekeeping</option><option>Maintenance</option><option>Cashier</option></select></div></div>
+            <div class="form-row"><div class="form-group"><label>Department</label><input type="text" id="staffDept" value="General"></div>
+            <div class="form-group"><label>Phone</label><input type="text" id="staffPhone"></div></div>`;
+            openModal('Add Staff', content, () => {
+                const s = {
+                    id: generateId('staff'),
+                    name: document.getElementById('staffName').value,
+                    role: document.getElementById('staffRole').value,
+                    department: document.getElementById('staffDept').value,
+                    phone: document.getElementById('staffPhone').value,
+                    status: 'Active',
+                    shift: 'Morning',
+                    notes: '',
+                };
+                if (!s.name) { showToast('Name required.', 'warning'); return false; }
+                appData.staff.push(s);
+                persistData();
+                showToast('Staff added.');
+                navigateTo('staff');
+            }, 'Add');
+        }
+
+        // ============ SETTINGS VIEW ============
+        function renderSettingsView() {
+            const s = appData.settings;
+            let html = `<div class="card"><div class="card-header">Motel Configuration</div>
+            <div class="form-row"><div class="form-group"><label>Motel Name</label><input type="text" id="setName" value="${s.motelName}"></div>
+            <div class="form-group"><label>Phone</label><input type="text" id="setPhone" value="${s.phone}"></div></div>
+            <div class="form-row"><div class="form-group"><label>Email</label><input type="email" id="setEmail" value="${s.email}"></div>
+            <div class="form-group"><label>Address</label><input type="text" id="setAddress" value="${s.address}"></div></div>
+            <div class="form-row"><div class="form-group"><label>Currency</label><input type="text" id="setCurrency" value="${s.currency}"></div>
+            <div class="form-group"><label>Tax Rate (%)</label><input type="number" id="setTaxRate" value="${s.taxRate}" step="0.1"></div></div>
+            <div class="form-row"><div class="form-group"><label>Check-In Time</label><input type="time" id="setCheckIn" value="${s.checkInTime}"></div>
+            <div class="form-group"><label>Check-Out Time</label><input type="time" id="setCheckOut" value="${s.checkOutTime}"></div></div>
+            <button class="btn-primary mt-1" onclick="saveSettings()">Save Settings</button>
+            <button class="btn-danger btn-sm mt-1" style="margin-left:0.5rem;" onclick="resetAllData()">⚠️ Reset All Data</button>
+            </div>`;
+            return html;
+        }
+
+        function saveSettings() {
+            appData.settings.motelName = document.getElementById('setName').value;
+            appData.settings.phone = document.getElementById('setPhone').value;
+            appData.settings.email = document.getElementById('setEmail').value;
+            appData.settings.address = document.getElementById('setAddress').value;
+            appData.settings.currency = document.getElementById('setCurrency').value;
+            appData.settings.taxRate = parseFloat(document.getElementById('setTaxRate').value) || 0;
+            appData.settings.checkInTime = document.getElementById('setCheckIn').value;
+            appData.settings.checkOutTime = document.getElementById('setCheckOut').value;
+            persistData();
+            showToast('Settings saved.');
+        }
+
+        function resetAllData() {
+            if (confirm('⚠️ This will DELETE all data and reset to defaults. Are you sure?')) {
+                if (confirm('FINAL WARNING: All reservations, guests, payments will be lost. Continue?')) {
+                    localStorage.removeItem(STORAGE_KEY);
+                    appData = getDefaultData();
+                    saveData(appData);
+                    showToast('Data reset to defaults.');
+                    navigateTo('dashboard');
+                }
+            }
+        }
+
+        // ============ INITIALIZATION ============
+        function init() {
+            // Sidebar navigation
+            document.querySelectorAll('#sidebarNav a').forEach(a => {
+                a.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    navigateTo(this.dataset.view);
+                });
+            });
+            // Mobile toggle
+            document.getElementById('mobileToggle').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.toggle('open');
+            });
+            // Close sidebar on main content click (mobile)
+            document.getElementById('mainContent').addEventListener('click', function(e) {
+                if (window.innerWidth <= 900 && !e.target.closest('.mobile-toggle') && !e.target.closest(
+                        '#sidebar')) {
+                    document.getElementById('sidebar').classList.remove('open');
+                }
+            });
+            // Global search
+            document.getElementById('globalSearch').addEventListener('input', function() {
+                const q = this.value.toLowerCase().trim();
+                if (q.length >= 2) {
+                    if (currentView === 'guests') renderGuestsView(q);
+                    else if (currentView === 'reservations') renderReservationsView(q);
+                    else if (currentView === 'rooms') renderRoomsView(q);
+                } else if (q.length === 0) {
+                    navigateTo(currentView);
+                }
+            });
+            // Render initial view
+            navigateTo('dashboard');
+            console.log('🏨 AMUD MOTEL COMMAND CENTER — 30-Room System Ready');
+            console.log('📊 Dashboard | 🚪 Rooms | 📅 Reservations | 💳 Payments | 🧹 Housekeeping | 🔧 Maintenance');
+            console.log('💾 Data stored in LocalStorage. Production should use Supabase/PostgreSQL.');
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+
+        // Expose functions globally for inline onclick handlers
+        window.navigateTo = navigateTo;
+        window.openRoomDetail = openRoomDetail;
+        window.changeRoomStatus = changeRoomStatus;
+        window.reportMaintenance = reportMaintenance;
+        window.checkInRoom = checkInRoom;
+        window.checkOutRoom = checkOutRoom;
+        window.reserveRoom = reserveRoom;
+        window.checkInReservation = checkInReservation;
+        window.checkOutReservation = checkOutReservation;
+        window.viewReservation = viewReservation;
+        window.createNewReservation = createNewReservation;
+        window.showDayReservations = showDayReservations;
+        window.addNewGuest = addNewGuest;
+        window.viewGuest = viewGuest;
+        window.walkInCheckIn = walkInCheckIn;
+        window.recordPayment = recordPayment;
+        window.createHKTask = createHKTask;
+        window.startHKTask = startHKTask;
+        window.completeHKTask = completeHKTask;
+        window.openMaintenanceForm = openMaintenanceForm;
+        window.assignMaint = assignMaint;
+        window.resolveMaint = resolveMaint;
+        window.addInventoryItem = addInventoryItem;
+        window.addExpense = addExpense;
+        window.addComplaint = addComplaint;
+        window.addStaff = addStaff;
+        window.saveSettings = saveSettings;
+        window.resetAllData = resetAllData;
+        window.exportCSV = exportCSV;
+        window.closeModal = closeModal;
+        console.log('✅ All systems initialized. 30 rooms. One system. Complete operational visibility.');
+    </script>
+</body>
+</html>
